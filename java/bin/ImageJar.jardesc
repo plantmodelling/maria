@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="MacRoman" standalone="no"?>
+<jardesc>
+    <jar path="/Applications/ImageJ/plugins/Friend_of_Phenotyping.jar"/>
+    <options buildIfNeeded="true" compress="false" descriptionLocation="/FriendOfPhenotyping/ImageJar.jardesc" exportErrors="false" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <file path="/FriendOfPhenotyping/.classpath"/>
+        <file path="/FriendOfPhenotyping/RosetteAnalysisImageJ.jardesc"/>
+        <file path="/FriendOfPhenotyping/.project"/>
+        <javaElement handleIdentifier="=FriendOfPhenotyping/&lt;"/>
+    </selectedElements>
+</jardesc>
