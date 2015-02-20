@@ -1,18 +1,16 @@
 # Set working directory
-setwd("C:/Iko/Studie/Master Environmental biology/Stage2/Model Assisted phenotyping/Models5")
+setwd("model/")
 
 ## Open files descriptors
-Data <- read.csv("output_Dat.csv", sep = ";")
-Test <- read.csv("output_test.csv", sep = ";")
-Weights <- read.csv("weights2.csv", sep = ";")
+Data <- read.csv("output-MARIA-without1.csv", sep = ";")
+Test <- read.csv("output-MARIA-only1.csv", sep = ";")
+Weights <- read.csv("weights.csv", sep = ";")
 ScaleData <- rbind(Test, Data)
 countcolData = length(colnames(ScaleData))
 Tot = length(rownames(ScaleData))
 ScaleData[,5:countcolData] <- scale(ScaleData[,5:countcolData])
-for(i in 5:(countcolData)){
-  
+for(i in 5:(countcolData)){  
   ScaleData[,i] <- ScaleData[,i] * Weights[4,i-3]
-  
 }
 TestList <- split(ScaleData, as.factor(ScaleData$Is))
 data <- unsplit(TestList[2], 1)
@@ -21,7 +19,7 @@ countcomp = length(rownames(test))
 countrow = length(rownames(data))
 
 ##Make Distance Matrix
-library("pdist", lib.loc="~/R/win-library/3.0")
+library("pdist")
 distnm <- matrix(nrow=countrow,ncol=(countcomp+1))
 distnm[,1] <- data$X
 distance <- pdist(data[,5:countcolData], test[,5:countcolData])
