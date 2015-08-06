@@ -20,19 +20,20 @@
 
 # Where is ArchiSimple
 setwd("/Users/guillaumelobet/Desktop/archisimple/") # Where is the ArchiSimple folder?
-eval = c(F)  # To know the number root system that will be generated, use c(F). To generate then, use c(F,T)
+eval = c(F)  # To check the number root system that will be generated, use c(F). To generate then, use c(F,T)
 verbatim <- FALSE
 
 # Range of parameters
 P_nbMaxPrim_range           <-  c(1) # Number of primary axes. Put 40 to have a monocot, 1 to have a dicot
-P_type_range                <- c(2:2) # Type of simuulation (1 = 3D, 2 = 2D, 3 = shovelomics)
-repetitions                 <- c(1:5) # Repetitions
+P_type_range                <- c(1) # Type of simuulation (1 = 3D, 2 = 2D, 3 = shovelomics)
+repetitions                 <- c(1:5) # number of repetitions for each parameter set
+P_duree <- 12  # Total length lenght of the simulation [days] 12 is a good compromise between the speed of the simulation and the final size of the root system
 
 # Influence total size
 P_penteVitDiam_range        <- seq(from=15, to=25, by=5) # Slope between the diametr and the root growth [-]
 P_propDiamRamif_range       <- seq(from=0.5, to=0.9, by=0.9) # Relation between the diameter of a parent and a child root
 P_distRamif_range           <- seq(from=4, to=6, by=2) # Distance between two successive lateral roots [mm]
-P_coeffCroissRad_range      <- seq(from=0, to=0, by=0.5) # Coefficient of radial growth
+P_coeffCroissRad_range      <- seq(from=0, to=0, by=0.5) # Coefficient of radial growth. 0 for monocots
 P_diamMax_range             <- seq(from=0.4, to=1.6, by=0.1) # Max diameter for the primary roots [mm]
 P_maxLatAge_range           <- seq(from=5, to=25, by=5)  # Maximal age growing age for the laterals [days]
 
@@ -81,7 +82,6 @@ P_diamMin  <-  0.014 # Min diameter for a root [mm]
 P_coeffVarDiamRamif <- 0.2 # Variation coefficient for the diameter fof the laterals
 
 # Simulation parameters
-P_duree <- 12  # Total length lenght of the simulation [days]
 P_type <- 1    # Type of simuulation (1 = 3D, 2 = 2D, 3 = shovelomics)
 P_IC_meca <- 0.03   # Mecanical impedence of the soil
 P_shovel <- 70 # Depth of sampling for the shovelomics
