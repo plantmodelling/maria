@@ -1,0 +1,113 @@
+---
+title: "MARIA - Correlation"
+author: "Guillaume Lobet"
+date: "8 Jul 2015"
+output: html_document
+---
+
+This document analyses the correlation between the estimators obtained with MARIA-J and the ground truth data (retrieved from the RSML files)
+
+
+```{r packs, echo=F, warning=F, eval=T}
+library(Hmisc)
+library(grid)
+```
+
+
+First, we load the data and create two vectors with the variable names. these vector will be used to plot the variable aainst each others.
+```{r loading, echo=F}
+
+setwd("~/Desktop/archisimple/2015-04-23_outputs/")
+
+ests <- read.csv("root_estimators.csv") # The estimators
+data <- read.csv("root_data.csv") # The ground truth
+
+
+ests$image <- gsub("/Users/guillaumelobet/Desktop/archisimple/outputs/images/", "", ests$image)
+ests$image <- gsub(".jpg", "", ests$image)
+
+
+ests.col <- colnames(ests)
+data.col <- colnames(data)
+
+print(colnames(ests))
+print(colnames(data))
+
+ests <- ests[1:nrow(data),]
+
+```
+
+Then we check the correlation for every data / estimator combinaison. We store the plot and the results only of the r-squared of the correlation is higher than `threshold <- 0.8`. 
+
+
+```{r correlation, echo=T}
+pList <- list()
+correlation <- data.frame(data=character(), est=character(), rsquare=numeric(), spearman=numeric(), pearson=numeric())
+threshold <- 0.5
+
+for(d in data.col){
+  if(d != "image"){
+    for(e in ests.col){
+      if(e != "image"){
+        fit <- lm(ests[[e]] ~ data[[d]])   
+        
+        if(summary(fit)$r.squared > threshold){
+          
+          r2 <- round(summary(fit)$r.squared, 3)
+          sp <- round(rcorr(ests[[e]],data[[d]], type="spearman")$r[1,2], 3)
+          pe <- round(rcorr(ests[[e]],data[[d]], type="pearson")$r[1,2], 3)
+          temp <- data.frame(data=d, est=e, rsquare=r2, spearman=sp, pearson=pe)
+          correlation <- rbind(correlation, temp)
+          leg <- paste("r-squared = ",r2, "\nPearson = ",pe, "\nSpearman = ",sp)
+          
+          dat <- data.frame(x = data[[d]], y=ests[[e]])
+          dat <- dat[!is.nan(dat$x),]
+          pList[[length(pList)+1]] <- ggplot(dat, aes(x, y)) + 
+                                geom_point(alpha=0.5) + 
+                                geom_smooth(method='lm') +
+                                xlab(d) + ylab(e) + 
+                                theme_bw() +
+                                annotate("text", y= min(dat$y), x =max(dat$x), label=leg, hjust=1, vjust=0, size=4)
+        }
+      }
+    }
+  }
+}
+```
+
+
+## Plots 
+
+Plos with the correlation between the different variables. Something strange is that the scale does not seem to be the same in both dataset...
+
+```{r plots, echo=F, fig.width = 10, fig.height = 15}
+
+# Make the panel
+cols <- 3
+numPlots = length(pList)
+layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                ncol = cols, nrow = ceiling(numPlots/cols))
+
+# Set up the page
+grid.newpage()
+pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+# Make each plot, in the correct location
+for (i in 1:numPlots) {
+  # Get the i,j matrix positions of the regions that contain this subplot
+  matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+  print(pList[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+}
+
+```
+
+## Correlations
+
+```{r correlations, echo=F}
+
+print(correlation)
+      
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

@@ -1,5 +1,5 @@
 /**
-* @author Guillaume Lobet | Universit� de Li�ge
+* @author Guillaume Lobet | Universite de Liege
 * @date: 2013-02-15
 * 
 * Plugin containing usefull function for the analysis of Arabidopsis rosette size
@@ -8,6 +8,7 @@
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.util.prefs.Preferences;
 
 import ij.ImageJ;
@@ -29,16 +30,22 @@ public class MARIA_ extends PlugInFrame{
 	}
 	
 	public static void main(String args[]) {
-		
-	    prefs = Preferences.userRoot().node("/ImageJ/plugins");
-	    
-		ImageJ ij = new ImageJ();
-		fop = new MARIA_();
-		ij.addWindowListener(new WindowAdapter() {
-			public void windowClosed(WindowEvent e) {
-				fop.dispose();
-				System.exit(0);
-			}
-		});
+		if(args.length > 0){
+			new RootAnalysis(new File(args[0]), 
+					args[1], Float.valueOf(args[2]), 2.54f, 
+					true, 50, false, false, false, false
+					);		
+		}
+		else{
+			prefs = Preferences.userRoot().node("/ImageJ/plugins");
+			ImageJ ij = new ImageJ();
+			fop = new MARIA_();
+			ij.addWindowListener(new WindowAdapter() {
+				public void windowClosed(WindowEvent e) {
+					fop.dispose();
+					System.exit(0);
+				}
+			});
+		}
 	}
 }

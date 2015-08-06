@@ -9,16 +9,12 @@
 
 import ij.IJ;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Shape;
-import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,27 +22,21 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Enumeration;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.SimpleAttributeSet;
@@ -66,9 +56,8 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 // ROOT PANEL
 	JButton rootAnalysisButton, rootFolderButton, rootCSVButton; 
 	JTextField rootImageFolder, rootCSVFile;
-	JTextField rootScalePix, rootScaleCm, rootStartingDate, rootMinSize, nEFD, nCoord;
-	JCheckBox rootExportCSV, blackRoots, rootGlobal, rootCoord, rootLocal, rootParameters, rootEFD, manualCorrection, rootDirectional;
-	JComboBox rootNameJCB;
+	JTextField rootScalePix, rootScaleCm, rootMinSize;
+	JCheckBox  blackRoots, saveImages, verbatim, saveTPS, saveTips;
 	RootAnalysis ran; 
 	JSlider rootMinSizeSlider;	
 
@@ -85,8 +74,8 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 	 * Build the interface
 	 */
 	private void build(){
-		this.setTitle("Friend of Phenotyping"); 					
-		this.setSize(800,680); 									
+		this.setTitle("Model Assisted Root Image Analysis - MARIA"); 					
+		this.setSize(800,540); 									
 		this.setLocationRelativeTo(null); 						
 		this.setResizable(true) ; 								
 		this.getContentPane().add(getPanel());
@@ -102,8 +91,9 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 	      tp = new JTabbedPane();	      
 	      Font font = new Font("Dialog", Font.PLAIN, 12);
 	      tp.setFont(font);
-	      tp.addTab("MARIA", getAboutTab());
-	      tp.addTab("Root Analysis", getRootTab());
+	      tp.addTab("About MARIA", getAboutTab());
+	      tp.addTab("MARIA Analysis", getRootTab());
+	      tp.addTab("Disclaimer", getDisclaimerTab());
 	      	      
 	      // Final container
 	      JPanel container = new JPanel(new BorderLayout()) ; 								
@@ -141,6 +131,24 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 		aboutBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		aboutBox.add(aboutView, BorderLayout.NORTH);
 
+		JPanel p1 = new JPanel(new BorderLayout());
+		p1.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		p1.add(logo, BorderLayout.NORTH);
+		p1.add(aboutBox, BorderLayout.CENTER);
+
+	      return new JScrollPane(p1);
+	}
+
+	
+
+	
+	/**
+	 * Create the "Disclaimer" tab for the interface
+	 * @return
+	 */
+	private JScrollPane getDisclaimerTab(){
+
+
 		// Disclaimer
 
 		JTextPane disclaimerPane = new JTextPane();
@@ -161,9 +169,7 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 
 		JPanel p1 = new JPanel(new BorderLayout());
 		p1.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		p1.add(logo, BorderLayout.NORTH);
-		p1.add(aboutBox, BorderLayout.CENTER);
-		p1.add(disclaimerBox, BorderLayout.SOUTH);
+		p1.add(disclaimerBox, BorderLayout.NORTH);
 
 	      return new JScrollPane(p1);
 	}
@@ -195,47 +201,27 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 	      rootFolderButton.setActionCommand("IMAGE_FOLDER_root");
 	      rootFolderButton.addActionListener(this);
 	      
-//	      rootImageFolder = new JTextField("[Choose a folder]",25);
-	      rootImageFolder = new JTextField("/Users/guillaumelobet/Desktop/FoP/pouches",30);
+	      rootImageFolder = new JTextField("[Choose a folder]",40);
+//	      rootImageFolder = new JTextField("/Users/guillaumelobet/Desktop/test/",30);
 	     
-	      //rootCSVFile = new JTextField("[Choose file]", 20);
+	      rootCSVFile = new JTextField("[Choose file]", 40);
 	      //rootCSVFile = new JTextField("/Users/guillaumelobet/Dropbox/research/projects/research/rhizotron_analysis/scripts/Root-System-Analysis/r/data/automated_analysis_2.csv", 40);
-	      rootCSVFile = new JTextField("/Users/guillaumelobet/Desktop/test.csv", 35);
+//	      rootCSVFile = new JTextField("/Users/guillaumelobet/Desktop/test.csv", 35);
 	      rootCSVFile.setEnabled(true);
 	      
-	      rootExportCSV = new JCheckBox("Send to CSV file", true);
-	      rootExportCSV.addItemListener(this);
-	      
 	      blackRoots = new JCheckBox("Black roots", true);
-	      rootGlobal = new JCheckBox("Global Analysis", false);
-	      manualCorrection = new JCheckBox("Manual correction", false);
-	      rootGlobal.addItemListener(this);
-	      rootCoord = new JCheckBox("Root Coordinates", false);
-	      rootCoord.addItemListener(this);
-	      rootLocal = new JCheckBox("Local Analysis", false);
-	      rootParameters = new JCheckBox("Image Descriptors (MARIA)", true);
-	      rootParameters.addItemListener(this);
-	      rootDirectional = new JCheckBox("Directional Analysis", false);	     	      
-	      rootEFD = new JCheckBox("EFD Analysis", false);
-	      rootEFD.addItemListener(this);
+	      saveImages = new JCheckBox("Save images", false);
+	      saveTips = new JCheckBox("Even the tips", false);
+	      saveTPS = new JCheckBox("Save TPS", false);
+	      verbatim = new JCheckBox("Verbatim", false);
 
 	      rootCSVButton = new JButton("Choose folder");
 	      rootCSVButton.setActionCommand("CSV_FOLDER_root");
 	      rootCSVButton.addActionListener(this);
 	      rootCSVButton.setEnabled(true);
-	      
-	      String[] nameType = {"Process QR", "Process image name", "Use image name"};
-	      rootNameJCB = new JComboBox(nameType);
-	      rootNameJCB.setSelectedIndex(2);
-	      rootNameJCB.addItemListener(this);
-
-	      nEFD = new JTextField("5", 4);
-	      nCoord = new JTextField("10", 4);
-	      //int nts = new File(rootImageFolder.getText()).listFiles().length;
+	     
 	      rootScalePix = new JTextField("2020", 5);	      
 	      rootScaleCm = new JTextField("23.5", 5);	
-	      rootStartingDate = new JTextField("2014-01-01", 10);
-	      //rootStartingDate.setEnabled(false);
 	      
 	      rootMinSize = new JTextField(""+rootMinSizeSlider.getValue(),3);
 	      rootMinSize.setEditable(false);
@@ -247,22 +233,10 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 	      gbc2.anchor = GridBagConstraints.WEST;
 	      GridBagLayout gbl3 = new GridBagLayout();
 	      panel3.setLayout(gbl3);
-
-	      gbc2.gridx = 0;
+     
 	      gbc2.gridy = 0;
-	      panel3.add(new JLabel("Image identification:"), gbc2);
-	      gbc2.gridx = 1;
-	      panel3.add(rootNameJCB, gbc2);
-	      
-//	      gbc2.gridx = 0;
-//	      gbc2.gridy = 1;
-//	      panel3.add(rootExportSQL, gbc2);
-//	      gbc2.gridx = 1;
-//	      panel3.add(rootOverrideSQL, gbc2);
-	      
 	      gbc2.gridx = 0;
-	      gbc2.gridy = 2;
-	      panel3.add(rootExportCSV, gbc2);	      
+	      panel3.add(new JLabel("CSV File:"), gbc2);
 	      gbc2.gridx = 1;
 	      panel3.add(rootCSVFile, gbc2);
 	      gbc2.gridx = 2;
@@ -288,9 +262,7 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 
 	      JPanel panel = new JPanel(new BorderLayout());
 	      panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-	      	      
-	      JLabel chooseSaveLabel = new JLabel("Image folder:");
-	      
+	      	      	      
 	      JPanel paramPanel1 = new JPanel();
 	      paramPanel1.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 	      GridBagConstraints gbc3 = new GridBagConstraints();
@@ -300,41 +272,23 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 	      
 	      gbc3.gridy = 0;
 	      gbc3.gridx = 0;
-	      paramPanel1.add(chooseSaveLabel, gbc3);
+	      paramPanel1.add(new JLabel("Image folder:"), gbc3);
 	      gbc3.gridx = 1;
 	      paramPanel1.add(rootImageFolder, gbc3);
 	      gbc3.gridx = 2;
-	      paramPanel1.add(rootFolderButton, gbc3);     
- 
+	      paramPanel1.add(rootFolderButton, gbc3);          
+	      gbc3.gridy = 1;
+	      gbc3.gridx = 2;
+	      paramPanel1.add(saveImages, gbc3);
 	      gbc3.gridy = 2;
-	      gbc3.gridx = 0;
-	      paramPanel1.add(rootGlobal, gbc3);
-	      gbc3.gridx = 1;
-	      paramPanel1.add(rootLocal, gbc3);	
-	      
+	      gbc3.gridx = 2;
+	      paramPanel1.add(saveTips, gbc3);
 	      gbc3.gridy = 3;
-	      gbc3.gridx = 0;
-	      paramPanel1.add(rootParameters, gbc3);
-	      
+	      gbc3.gridx = 2;
+	      paramPanel1.add(verbatim, gbc3);
 	      gbc3.gridy = 4;
-	      gbc3.gridx = 0;
-	      paramPanel1.add(rootCoord, gbc3);
-	      gbc3.gridx = 1;
-	      paramPanel1.add(nCoord, gbc3);
-	      
-	      gbc3.gridy = 5;
-	      gbc3.gridx = 0;
-	      paramPanel1.add(rootEFD, gbc3);
-	      gbc3.gridx = 1;
-	      paramPanel1.add(nEFD, gbc3);
-
-	      gbc3.gridy = 6;
-	      gbc3.gridx = 0;
-	      paramPanel1.add(rootDirectional, gbc3);
-	      
-	      gbc3.gridy = 7;
-	      gbc3.gridx = 0;
-	      paramPanel1.add(manualCorrection, gbc3);
+	      gbc3.gridx = 2;
+	      paramPanel1.add(saveTPS, gbc3);
 	      
 	      // Parameters panel
 	      JPanel paramPanel2 = new JPanel(new BorderLayout());
@@ -375,14 +329,7 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 	      gbc4.gridx = 2;
 	      scalePanel1.add(rootScaleCm, gbc4);
  
-	      
-//	      gbc4.gridy = 2;
-//	      gbc4.gridx = 0;
-//	      scalePanel1.add(new JLabel("Starting date: "), gbc4);
-//	      gbc4.gridx = 2;
-//	      scalePanel1.add(rootStartingDate, gbc4);	
-
-
+	     
 	     
 	      gbc4.gridy = 4;
 	      gbc4.gridx = 0;
@@ -444,10 +391,7 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 	/**
 	 * 
 	 */
-	public void stateChanged(ChangeEvent e) {
-		Object item = e.getSource();
-				
-		
+	public void stateChanged(ChangeEvent e) {				
 	}
 	
 	
@@ -456,8 +400,6 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 	 * @param e
 	 */
 	public void itemStateChanged(ItemEvent e) {
-		Object item = e.getItem();
-		
 	}
 	
 	
@@ -474,17 +416,16 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 		if (ae.getActionCommand() == "CSV_FOLDER_root") { 
 	    	  
 			JFileChooser fc = new JFileChooser();
-			csvFilter csvf = new csvFilter ();
+			csvFilter csvf = new csvFilter();
 			fc.setFileFilter(csvf);
 			fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			int returnVal = fc.showDialog(this, "Save");
 			   
 			if (returnVal == JFileChooser.APPROVE_OPTION){ 
 				String fName = fc.getSelectedFile().toString();
-				if(!fName.endsWith(".csv")) fName = fName.concat(".csv");
-				rootCSVFile.setText(fName);
+				if(!fName.endsWith(".csv")) fName = fName.concat(".csv");				
+				rootCSVFile.setText(fName);	
 			}
-			else IJ.log("Open command cancelled.");     
 		}	
 		
 		else if (ae.getActionCommand() == "IMAGE_FOLDER_root") {
@@ -492,15 +433,22 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 			JFileChooser fc = new JFileChooser();
 			fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			int returnVal = fc.showDialog(this, "Choose folder");
-			
-			if (returnVal == JFileChooser.APPROVE_OPTION){ 
+
+			if (returnVal == JFileChooser.APPROVE_OPTION){
 				String fName = fc.getSelectedFile().toString();
-				if(!fName.endsWith("/")) fName = fName+"/";
-				rootImageFolder.setText(fName);
-				File f = new File(fName);
-				File[] images = f.listFiles();
-			}
-			else IJ.log("Folder command cancelled.");     
+				String sep = System.getProperty("file.separator");
+
+				// If the name contains 2 times the same folder at the end, remove one.
+				// This is necessary because of a strange behavior of the JFileChooser.
+				ArrayList<String> na = Util.getArrayFromString(fName, sep, true);
+				if(na.get(na.size()-1).equals(na.get(na.size()-2))){
+					na.remove(na.size()-1);
+				}
+				fName = Util.getStringFromArray(na, sep);
+				if(!fName.endsWith(sep)) fName = fName+sep;
+				
+				rootImageFolder.setText(fName);							
+			}			
 		}		
 		
 		else if(ae.getActionCommand() == "RUN_ANALYSIS_root"){
@@ -508,28 +456,19 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 				IJ.log("Please choose an image folder");
 				return;
 			}
-			if(rootExportCSV.isSelected() && rootCSVFile.getText().equals("")){
-				IJ.log("Please choose a csv folder");
-				return;
-			}
 			Thread ra = new Thread(new Runnable() {
 		 		public void run() {	
-					new RootAnalysis(new File(rootImageFolder.getText()), 
+					new RootAnalysis(
+							new File(rootImageFolder.getText()), 
 							rootCSVFile.getText(),
 							Float.valueOf(rootScalePix.getText()), 
 							Float.valueOf(rootScaleCm.getText()), 
-							rootNameJCB.getSelectedIndex(),
 							blackRoots.isSelected(),
 							Float.valueOf(rootMinSize.getText()),
-							rootLocal.isSelected(),
-							rootGlobal.isSelected(),
-							rootCoord.isSelected(),
-							rootEFD.isSelected(),
-							rootDirectional.isSelected(),
-							rootParameters.isSelected(),
-							Integer.valueOf(nEFD.getText()),
-							Integer.valueOf(nCoord.getText()),
-							manualCorrection.isSelected()
+							verbatim.isSelected(),
+							saveImages.isSelected(),
+							saveTips.isSelected(),
+							saveTPS.isSelected() 
 							);	
 				}
 			});
@@ -538,39 +477,6 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 	
 	}
 
-
-	/**
-	 * Image Filter
-	 * @author guillaumelobet
-	 */
-	public class ImageFilter extends javax.swing.filechooser.FileFilter{
-		public boolean accept (File f) {
-			if (f.isDirectory()) {
-				return true;
-			}
-
-			String extension = getExtension(f);
-			if (extension != null) {
-				if (extension.equals("tif") || extension.equals("tiff") || extension.equals("jpg") ) return true;
-				else return false;
-			}
-			return false;
-		}
-	     
-		public String getDescription () {
-			return "Image file (*.tif, *.jpg)";
-		}
-	      
-		public String getExtension(File f) {
-			String ext = null;
-			String s = f.getName();
-			int i = s.lastIndexOf('.');
-			if (i > 0 &&  i < s.length() - 1) {
-				ext = s.substring(i+1).toLowerCase();
-			}
-			return ext;
-		}
-	}
    
    /**
     * CSV filter	
@@ -630,8 +536,10 @@ public class MARIAInterface extends JFrame implements ItemListener, ActionListen
 		String text = "\n MARIA is a plugin created and maintained by\n-\n"
 				+"Guillaume Lobet - University of Liége\n"
 				+ "guillaume.lobet@ulg.ac.be\n"
-				+ "@guillaumelobet\n-\n"
+				+ "@guillaumelobet\n"
+				+"-\n"
 				+"Iko Koevoets - University of Utrecht\n"
+				+"-\n"
 				+"Loic Pages - INRA Avignon\n";
 		return text;
 	}	

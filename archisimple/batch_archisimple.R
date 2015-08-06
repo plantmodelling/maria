@@ -15,7 +15,7 @@ P_penteVitDiam <- 20 #--------------
 P_tendanceDirTropisme <- 1
 P_intensiteTropisme <- 0.01 #--------------
 P_ageMaturitePointe <- 1
-P_distRamif <- 2
+P_distRamif <- 0.1
 P_propDiamRamif <- 0.4 #--------------
 P_coeffVarDiamRamif <- 0.3 #--------------
 P_probaMaxArret <- 0.4

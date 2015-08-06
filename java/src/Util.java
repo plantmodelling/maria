@@ -9,14 +9,8 @@
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.plugin.ContrastEnhancer;
-import ij.plugin.ImageCalculator;
-import ij.plugin.filter.RGBStackSplitter;
-import ij.process.AutoThresholder.Method;
 import ij.process.ColorProcessor;
-import ij.process.ImageProcessor;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -26,7 +20,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Hashtable;
 import java.util.Vector;
 
 
@@ -229,28 +222,6 @@ public final class Util {
 		return pw;
 	}
 	
-
-	/**
-	 * Get an array of String from a String with the form "1,2,3,4"
-	 * @param s
-	 * @return
-	 */
-	public static String[] getArrayFromString(String s, String sep, boolean last){
-		ArrayList<String> al = new ArrayList<String>();
-		
-		int index = s.indexOf(sep);
-		while(index > 0){
-			al.add(s.substring(0, index));
-			s = s.substring(index+1, s.length());
-			index = s.indexOf(sep);
-		} 
-		if(last) al.add(s);
-		
-		String[] data = new String[al.size()];
-		for(int i = 0 ; i < data.length; i++) data[i] = al.get(i);
-		
-		return data;
-	}
 	
 	/**
 	 * Create the image folder structure
@@ -282,5 +253,39 @@ public final class Util {
 		
 		return d0;
 	}
-    
+	
+	/**
+	 * Get an array of String from a String with the form "1,2,3,4"
+	 * @param s
+	 * @return
+	 */
+	public static ArrayList<String> getArrayFromString(String s, String sep, boolean last){
+		ArrayList<String> al = new ArrayList<String>();
+		
+		int index = s.indexOf(sep);
+		while(index >= 0){
+			al.add(s.substring(0, index));
+			s = s.substring(index+1, s.length());
+			index = s.indexOf(sep);
+		} 
+		if(last) al.add(s);
+		
+		return al;
+	}    
+	
+	/**
+	 * Get an array of String from a String with the form "1,2,3,4"
+	 * @param s
+	 * @return
+	 */
+	public static String getStringFromArray(ArrayList<String> s, String sep){		
+		String st = "";
+		for(int i = 0; i < s.size(); i++){
+			st = st.concat(s.get(i));
+			st = st.concat(sep);
+		}
+		return st;
+	} 
+	
+	
 }
