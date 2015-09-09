@@ -21,7 +21,7 @@
 
 
 # Where is ArchiSimple
-setwd("/Users/guillaumelobet/Dropbox/research/projects/research/MARIA/maria_scripts/r/00_model/") # Where is the ArchiSimple folder?
+setwd("/Users/guillaumelobet/Dropbox/research/projects/research/MARIA/maria_scripts/r/00_model_generator/") # Where is the ArchiSimple folder?
 eval = c(F,T)  # To check the number root system that will be generated, use c(F). To generate then, use c(F,T)
 verbatim <- FALSE
 
@@ -45,6 +45,7 @@ P_intensiteTropisme_range   <- seq(from=0.001, to=0.031, by=0.02) # strenght of 
 P_angInitMoyVertPrim_range  <- seq(from=1.6, to=1.7, by=0.1)  # Emission angle for the principal roots. Between 0 and PI/2 [radian]
 P_tertiary <- 0           # Generate the tertiary roots
 
+create_rsml <- F        # Create the RSML files ArchiSimple
 create_images <- T      # Using RSML_reader.jar
 analyse_images  <- T    # Using MARIA_J.jar
 machine_learning <- T   # Machine learning to define the equations for the fitting
@@ -112,98 +113,100 @@ percent <- 0
 
 for(e in eval){
   
-  for(P_nbMaxPrim in P_nbMaxPrim_range){
-    
-    for(P_type in P_type_range){
+  if(create_rsml){
+    for(P_nbMaxPrim in P_nbMaxPrim_range){
       
-      for(P_penteVitDiam in P_penteVitDiam_range){
+      for(P_type in P_type_range){
         
-        for(P_angInitMoyVertPrim in P_angInitMoyVertPrim_range){
+        for(P_penteVitDiam in P_penteVitDiam_range){
           
-          for(P_intensiteTropisme in P_intensiteTropisme_range){
+          for(P_angInitMoyVertPrim in P_angInitMoyVertPrim_range){
             
-            for(P_propDiamRamif in P_propDiamRamif_range){
+            for(P_intensiteTropisme in P_intensiteTropisme_range){
               
-              for(P_distRamif in P_distRamif_range){
+              for(P_propDiamRamif in P_propDiamRamif_range){
                 
-                for(P_coeffCroissRad in P_coeffCroissRad_range){
+                for(P_distRamif in P_distRamif_range){
                   
-                  for(P_diamMax in P_diamMax_range){
+                  for(P_coeffCroissRad in P_coeffCroissRad_range){
                     
-                    for(P_maxLatAge in P_maxLatAge_range){
+                    for(P_diamMax in P_diamMax_range){
                       
-                      for(P_angLat in P_angLat_range){
-                          
-                        for(i in repetitions){ # Repetitions
-                          
-                          if(e){
-                            # check if dicot or monocot root
-                            species <- "dicot"                  
-                            if(P_nbMaxPrim > 1){
-                              P_coeffCroissRad <- 0
-                              species <- "monocot"
+                      for(P_maxLatAge in P_maxLatAge_range){
+                        
+                        for(P_angLat in P_angLat_range){
+                            
+                          for(i in repetitions){ # Repetitions
+                            
+                            if(e){
+                              # check if dicot or monocot root
+                              species <- "dicot"                  
+                              if(P_nbMaxPrim > 1){
+                                P_coeffCroissRad <- 0
+                                species <- "monocot"
+                              }
+           
+                              # Change the name pre-fix based on the simualtion type
+                              if(P_type == 1) basename <- paste("/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/", species, "-3D", sep="")
+                              if(P_type == 2) basename <- paste("/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/", species, "-2D", sep="")
+                              if(P_type == 3) basename <- paste("/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/", species, "-shov", sep="")
+                             
+                              diam <- P_diamMax # + (0.1 * runif(1, 0, 1)) # Add some variability to the diameter
+                              
+                              # Setup the name of the file, containing the principal info about the simulation
+                              name <- paste(basename, "-", 
+                                            P_penteVitDiam,"-", 
+                                            P_vitEmissionPrim, "-", 
+                                            P_angInitMoyVertPrim, "-",
+                                            P_intensiteTropisme, "-", 
+                                            P_propDiamRamif, "-", 
+                                            P_distRamif ,"-", 
+                                            P_coeffCroissRad, "-", 
+                                            diam , "-", 
+                                            P_angLat , "-", 
+                                            P_maxLatAge, "-r", 
+                                            i, 
+                                            sep="")
+                              if(verbatim) message(name)
+                              
+                              var <- c(P_duree,
+                                     P_simultEmiss,
+                                     P_vitEmissionPrim,
+                                     P_nbSeminales,
+                                     P_nbMaxPrim,
+                                     P_diamMin,
+                                     diam,
+                                     P_penteVitDiam,
+                                     P_intensiteTropisme,
+                                     P_distRamif,
+                                     P_propDiamRamif,
+                                     P_coeffVarDiamRamif,
+                                     P_probaMaxArret,
+                                     P_TMD,
+                                     P_penteDureeVieDiamTMD,
+                                     P_coeffCroissRad,
+                                     P_angLat,
+                                     P_tertiary,
+                                     name,
+                                     P_type,
+                                     P_IC_meca,
+                                     P_shovel,
+                                     P_maxLatAge,
+                                     P_angInitMoyVertPrim,
+                                     P_slopePrimAngle
+                              )
+                              cat(var, file=paste("archisimple/param.txt",sep=""), sep='\n') # Create the input file for Archisimple
+                              system("./archisimple/ArchiSimp5Maria")  # Run Archisimple
                             }
-         
-                            # Change the name pre-fix based on the simualtion type
-                            if(P_type == 1) basename <- paste("/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/", species, "-3D", sep="")
-                            if(P_type == 2) basename <- paste("/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/", species, "-2D", sep="")
-                            if(P_type == 3) basename <- paste("/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/", species, "-shov", sep="")
-                           
-                            diam <- P_diamMax # + (0.1 * runif(1, 0, 1)) # Add some variability to the diameter
+                            counter <- counter+1
                             
-                            # Setup the name of the file, containing the principal info about the simulation
-                            name <- paste(basename, "-", 
-                                          P_penteVitDiam,"-", 
-                                          P_vitEmissionPrim, "-", 
-                                          P_angInitMoyVertPrim, "-",
-                                          P_intensiteTropisme, "-", 
-                                          P_propDiamRamif, "-", 
-                                          P_distRamif ,"-", 
-                                          P_coeffCroissRad, "-", 
-                                          diam , "-", 
-                                          P_angLat , "-", 
-                                          P_maxLatAge, "-r", 
-                                          i, 
-                                          sep="")
-                            if(verbatim) message(name)
-                            
-                            var <- c(P_duree,
-                                   P_simultEmiss,
-                                   P_vitEmissionPrim,
-                                   P_nbSeminales,
-                                   P_nbMaxPrim,
-                                   P_diamMin,
-                                   diam,
-                                   P_penteVitDiam,
-                                   P_intensiteTropisme,
-                                   P_distRamif,
-                                   P_propDiamRamif,
-                                   P_coeffVarDiamRamif,
-                                   P_probaMaxArret,
-                                   P_TMD,
-                                   P_penteDureeVieDiamTMD,
-                                   P_coeffCroissRad,
-                                   P_angLat,
-                                   P_tertiary,
-                                   name,
-                                   P_type,
-                                   P_IC_meca,
-                                   P_shovel,
-                                   P_maxLatAge,
-                                   P_angInitMoyVertPrim,
-                                   P_slopePrimAngle
-                            )
-                            cat(var, file=paste("archisimple/param.txt",sep=""), sep='\n') # Create the input file for Archisimple
-                            system("./archisimple/ArchiSimp5Maria")  # Run Archisimple
-                          }
-                          counter <- counter+1
-                          
-                          # Counter to track the evolution of the simulations
-                          if(e){
-                            prog <- ( counter / tot_sim ) * 100
-                            if(prog > percent){
-                              message(paste(round(prog), "% of root systems generated"))
-                              percent <- percent + 10
+                            # Counter to track the evolution of the simulations
+                            if(e){
+                              prog <- ( counter / tot_sim ) * 100
+                              if(prog > percent){
+                                message(paste(round(prog), "% of root systems generated"))
+                                percent <- percent + 10
+                              }
                             }
                           }
                         }
@@ -218,18 +221,19 @@ for(e in eval){
       }
     }
   }
+  
   if(e){
     
     # Create and save the images
     if(create_images){
       message("Creating root images and ground truth data")
-       system('java -Xmx4000m -jar RSML_reader.jar "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/" "/Users/guillaumelobet//Desktop/Work/archisimple/outputs/images/" "../06_maria_shiny/data/root_data.csv"')
+       system('java -Xmx4000m -jar RSML_reader.jar "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/" "/Users/guillaumelobet//Desktop/Work/archisimple/outputs/images/" "../07_maria_shiny/data/root_data.csv"')
     }
   
     # Analyse the images
     if(analyse_images){
       message("Analysing root images")
-      system('java -Xmx4000m -jar MARIAJ.jar "/Users/guillaumelobet//Desktop/Work/archisimple/outputs/images/" "../06_maria_shiny/data/root_estimators.csv" "3"')  
+      system('java -Xmx4000m -jar MARIAJ.jar "/Users/guillaumelobet//Desktop/Work/archisimple/outputs/images/" "../07_maria_shiny/data/root_estimators.csv" "3"')  
     }
     
     # Machine learning to retrieve the parameters
@@ -237,8 +241,8 @@ for(e in eval){
       message("Machine learning started")
       source("maria_learning.r")  
       
-      ests <- read.csv("../06_maria_shiny/data/root_estimators.csv")
-      ground_truth <- read.csv("../06_maria_shiny/data/root_data.csv")
+      ests <- read.csv("../07_maria_shiny/data/root_estimators.csv")
+      ground_truth <- read.csv("../07_maria_shiny/data/root_data.csv")
       colnames(ground_truth)[colnames(ground_truth) == "width"] <- "true_width"
       colnames(ground_truth)[colnames(ground_truth) == "depth"] <- "true_depth"
       rs <- cbind(ests, ground_truth)
@@ -250,7 +254,7 @@ for(e in eval){
                                   ntop = n_var, 
                                   acc = accu)
       
-      save(maria_reg, file="../06_maria_shiny/data/maria_regs.RData")
+      save(maria_reg, file="../07_maria_shiny/data/maria_regs.RData")
 
       # Get the predictions from the machine learning
       # This has to be done in two passes, since the machine learning 
@@ -292,8 +296,8 @@ for(e in eval){
       
       message("Clusering started")
       
-      ests <- read.csv("../06_maria_shiny/data/root_estimators.csv")
-      ground_truth <- read.csv("../06_maria_shiny/data/root_data.csv")
+      ests <- read.csv("../07_maria_shiny/data/root_estimators.csv")
+      ground_truth <- read.csv("../07_maria_shiny/data/root_data.csv")
       colnames(ground_truth)[colnames(ground_truth) == "width"] <- "true_width"
       colnames(ground_truth)[colnames(ground_truth) == "depth"] <- "true_depth"
       sim_data <- cbind(ground_truth, ests[2:ncol(ests)])
@@ -305,11 +309,11 @@ for(e in eval){
       
       # get cluster means 
       clusters <- aggregate(to_cluster, by=list(fit$cluster), FUN=mean)
-      save(clusters, file="../06_maria_shiny/data/maria_clusters.RData")
+      save(clusters, file="../07_maria_shiny/data/maria_clusters.RData")
       
       # append cluster assignment
       sim_data <- data.frame(sim_data, fit$cluster) 
-      save(sim_data, file="../06_maria_shiny/data/maria_sim_data.RData")
+      save(sim_data, file="../07_maria_shiny/data/maria_sim_data.RData")
     }
     
    }
