@@ -22,7 +22,7 @@ shinyUI(fluidPage(
       selectInput("setup", label = "Choose a setup",
                   choices = c("2D", "3D", "Shovelomics"), selected = "2D"),
       
-      checkboxInput("saveRSML", label = "Save RSML files", value = F),
+      checkboxInput("saveRSML", label = "Get corresponding RSML files", value = F),
             
       actionButton(inputId = "runMARIA", label="Unleash MARIA"),
       

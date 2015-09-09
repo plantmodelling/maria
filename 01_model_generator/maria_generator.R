@@ -21,35 +21,35 @@
 
 
 # Where is ArchiSimple
-setwd("/Users/guillaumelobet/Dropbox/research/projects/research/MARIA/maria_scripts/r/00_model_generator/") # Where is the ArchiSimple folder?
+setwd("/Users/guillaumelobet/Dropbox/research/projects/research/MARIA/maria_scripts/01_model_generator/") # Where is the ArchiSimple folder?
 eval = c(F,T)  # To check the number root system that will be generated, use c(F). To generate then, use c(F,T)
 verbatim <- FALSE
 
 # Range of parameters
 P_nbMaxPrim_range           <-  c(40) # Number of primary axes. Put 40 to have a monocot, 1 to have a dicot
 P_type_range                <- c(1) # Type of simuulation (1 = 3D, 2 = 2D, 3 = shovelomics)
-repetitions                 <- c(3) # number of repetitions for each parameter set
+repetitions                 <- c(1) # number of repetitions for each parameter set
 P_duree <- 12  # Total length lenght of the simulation [days] 12 is a good compromise between the speed of the simulation and the final size of the root system
 
 # Influence total size
-P_penteVitDiam_range        <- seq(from=15, to=25, by=5) # Slope between the diametr and the root growth [-]
+P_penteVitDiam_range        <- seq(from=15, to=25, by=10) # Slope between the diametr and the root growth [-]
 P_propDiamRamif_range       <- seq(from=0.5, to=0.9, by=0.4) # Relation between the diameter of a parent and a child root
-P_distRamif_range           <- seq(from=4, to=6, by=2) # Distance between two successive lateral roots [mm]
+P_distRamif_range           <- seq(from=6, to=6, by=2) # Distance between two successive lateral roots [mm]
 P_coeffCroissRad_range      <- seq(from=0, to=0, by=0.5) # Coefficient of radial growth. 0 for monocots
 P_diamMax_range             <- seq(from=0.4, to=1.6, by=0.5) # Max diameter for the primary roots [mm]
-P_maxLatAge_range           <- seq(from=5, to=35, by=10)  # Maximal age growing age for the laterals [days]
+P_maxLatAge_range           <- seq(from=5, to=25, by=10)  # Maximal age growing age for the laterals [days]
 
 # Influence root exploration
-P_angLat_range              <- seq(from=0.5, to=1.5, by=0.5) # Emission angle for the laterals [radian]
+P_angLat_range              <- seq(from=0.5, to=1.5, by=1) # Emission angle for the laterals [radian]
 P_intensiteTropisme_range   <- seq(from=0.001, to=0.031, by=0.02) # strenght of the gravitropic response
 P_angInitMoyVertPrim_range  <- seq(from=1.6, to=1.7, by=0.1)  # Emission angle for the principal roots. Between 0 and PI/2 [radian]
 P_tertiary <- 0           # Generate the tertiary roots
 
-create_rsml <- F        # Create the RSML files ArchiSimple
+create_rsml <- T        # Create the RSML files ArchiSimple
 create_images <- T      # Using RSML_reader.jar
 analyse_images  <- T    # Using MARIA_J.jar
-machine_learning <- T   # Machine learning to define the equations for the fitting
-create_clusters <- T    # k-means clustering to the image fitting
+machine_learning <- F   # Machine learning to define the equations for the fitting
+create_clusters <- F    # k-means clustering to the image fitting
 
 # Clustering parameters
 n_clusters <- 50   # Number of clusters to create
@@ -227,13 +227,15 @@ for(e in eval){
     # Create and save the images
     if(create_images){
       message("Creating root images and ground truth data")
-       system('java -Xmx4000m -jar RSML_reader.jar "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/" "/Users/guillaumelobet//Desktop/Work/archisimple/outputs/images/" "../07_maria_shiny/data/root_data.csv"')
+      #system('java -Xmx4000m -jar RSML_reader.jar "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/" "/Users/guillaumelobet//Desktop/Work/archisimple/outputs/images/" "../07_maria_shiny/data/root_data.csv"')
+      system('java -Xmx4000m -jar RSML_reader.jar "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/" "/Users/guillaumelobet//Desktop/Work/archisimple/outputs/images/" "/Users/guillaumelobet//Desktop/root_data.csv"')
     }
   
     # Analyse the images
     if(analyse_images){
       message("Analysing root images")
-      system('java -Xmx4000m -jar MARIAJ.jar "/Users/guillaumelobet//Desktop/Work/archisimple/outputs/images/" "../07_maria_shiny/data/root_estimators.csv" "3"')  
+      #system('java -Xmx4000m -jar MARIAJ.jar "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/images/" "../07_maria_shiny/data/root_estimators.csv" "3"')  
+      system('java -Xmx4000m -jar MARIAJ.jar "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/images/" "/Users/guillaumelobet//Desktop/root_estimators.csv" "3"')  
     }
     
     # Machine learning to retrieve the parameters
@@ -241,11 +243,15 @@ for(e in eval){
       message("Machine learning started")
       source("maria_learning.r")  
       
-      ests <- read.csv("../07_maria_shiny/data/root_estimators.csv")
-      ground_truth <- read.csv("../07_maria_shiny/data/root_data.csv")
-      colnames(ground_truth)[colnames(ground_truth) == "width"] <- "true_width"
-      colnames(ground_truth)[colnames(ground_truth) == "depth"] <- "true_depth"
-      rs <- cbind(ests, ground_truth)
+      descriptors <- read.csv("../07_maria_shiny/data/root_estimators.csv")
+      save(descriptors, file="../07_maria_shiny/data/maria_descriptors.RData")
+      
+      parameters <- read.csv("../07_maria_shiny/data/root_data.csv")
+      save(parameters, file="../07_maria_shiny/data/maria_parameters.RData")
+
+      colnames(parameters)[colnames(parameters) == "width"] <- "true_width"
+      colnames(parameters)[colnames(parameters) == "depth"] <- "true_depth"
+      rs <- cbind(descriptors, parameters)
       
       maria_reg <- maria_learning(fname = rs, 
                                   f_vec = c(73:85), 
@@ -259,24 +265,26 @@ for(e in eval){
       # Get the predictions from the machine learning
       # This has to be done in two passes, since the machine learning 
       # was build iterativelly. 
-      results <- data.frame(id = c(1:nrow(ests)))
+      results <- data.frame(id = c(1:nrow(descriptors)))
       to_keep <-  maria_reg$kept
 
+      maria_reg[[1]][[te]]$fit
+      
       for(k in 1:1){
         reg <- maria_reg[[k]]
         to_est <- names(reg)
-        results <- data.frame(id = c(1:nrow(ests)))
+        results <- data.frame(id = c(1:nrow(descriptors)))
         for(te in to_est){
-          preds <- predict(reg[[te]]$fit, newdata=ests)
+          preds <- predict(reg[[te]]$fit, newdata=descriptors)
           results <- cbind(results, preds)
         }
         colnames(results) <- c("id", to_est)
         if(k < length(maria_reg)){
-          ests <- cbind(ests, results)
+          descriptors <- cbind(descriptors, results)
         }
       }
       colnames(results) <- c("id", paste("est_", to_est, sep=""))
-      all <- cbind(ground_truth, results)
+      all <- cbind(parameters, results)
       
       
       # Look at the quality of the estimations
@@ -296,11 +304,11 @@ for(e in eval){
       
       message("Clusering started")
       
-      ests <- read.csv("../07_maria_shiny/data/root_estimators.csv")
-      ground_truth <- read.csv("../07_maria_shiny/data/root_data.csv")
-      colnames(ground_truth)[colnames(ground_truth) == "width"] <- "true_width"
-      colnames(ground_truth)[colnames(ground_truth) == "depth"] <- "true_depth"
-      sim_data <- cbind(ground_truth, ests[2:ncol(ests)])
+      descriptors <- read.csv("../07_maria_shiny/data/root_estimators.csv")
+      parameters <- read.csv("../07_maria_shiny/data/root_data.csv")
+      colnames(parameters)[colnames(parameters) == "width"] <- "true_width"
+      colnames(parameters)[colnames(parameters) == "depth"] <- "true_depth"
+      sim_data <- cbind(parameters, descriptors[2:ncol(descriptors)])
       
       #to_cluster <- na.omit(sim_data[,2:(ncol(sim_data)-4)]) # listwise deletion of missing
       to_cluster <- scale(sim_data[,2:(ncol(sim_data)-4)])

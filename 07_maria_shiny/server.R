@@ -25,60 +25,60 @@ shinyServer(
       d <- nrow(Data())
       
       # Get the estimations using the machine learning regressions.
-      results <- data.frame(id = c(1:nrow(Data())))
-      for(k in 1:length(maria_reg)){
+      results <- data.frame(id = c(1:nrow(ests)))
+      for(k in 1:2){
         reg <- maria_reg[[k]]
         to_est <- names(reg)
-        results <- data.frame(id = c(1:nrow(Data())))
+        results <- data.frame(id = c(1:nrow(ests)))
         for(te in to_est){
-          preds <- predict(reg[[te]]$fit, newdata=Data())
+          preds <- predict(reg[[te]]$fit, newdata=ests)
           results <- cbind(results, preds)
         }
         colnames(results) <- c("id", to_est)
         if(k < length(maria_reg)){
-          Data() <- cbind(Data(), results)
+          ests <- cbind(ests, results)
         }
       }
-      colnames(results) <- c("id", paste("est_", to_est, sep=""))
-      
-      
+      colnames(results) <- c("id", to_est)
+
+      return(results)
       
       # Reduce the size of the dataset
       #message(nrow(ests))
       #ests <- ests[ests$depth > min(Data()$depth)*0.8 & ests$depth < max(Data()$depth) * 1.2,]
       #ests <- ests[ests$depth > (min(rs$depth)*0.8) & ests$depth < (max(rs$depth) * 1.2),]
       #message(nrow(ests))
-      
-      original <- ests[,c("image", "depth", "width", "area"), with=F]
-      
-      # Merge the data and the test for the weighting
-      ests <- rbind(ests, Data())
-      
-      # scale the data
-      ests[,2:ncol(ests)] = data.table(scale(ests[, 2:ncol(ests), with=F]))
-      
-      # Weight the data
-      for(e in estimators) ests[[e]] <- ests[[e]] * mean(weights[[e]])
-      
-      test <- ests[(r+1):nrow(ests),]
-      base <- ests[0:r,]
-      nvar <- length(estimators)      
-      
-      # Get the distance matrix
-      distances <- as.matrix(pdist(base[,estimators, with=F], test[,estimators, with=F]))
-      test$match <- base$image[apply(distances, 2, min.index)]
-      test$dist <- apply(distances, 2, min.value)
-      
-      # Save the distance data (test image + match)
-      pred <- test[,c("match", "image", "dist"), with=F]      
-      
-      if(length(data$image) > 0) setnames(data,'image','match')
-      setnames(original,'image','match')  
-      
-      obs <- merge(pred, data, by="match")
-      obs <- merge(obs, original, by="match")
-
-      return(obs)
+#       
+#       original <- ests[,c("image", "depth", "width", "area"), with=F]
+#       
+#       # Merge the data and the test for the weighting
+#       ests <- rbind(ests, Data())
+#       
+#       # scale the data
+#       ests[,2:ncol(ests)] = data.table(scale(ests[, 2:ncol(ests), with=F]))
+#       
+#       # Weight the data
+#       for(e in estimators) ests[[e]] <- ests[[e]] * mean(weights[[e]])
+#       
+#       test <- ests[(r+1):nrow(ests),]
+#       base <- ests[0:r,]
+#       nvar <- length(estimators)      
+#       
+#       # Get the distance matrix
+#       distances <- as.matrix(pdist(base[,estimators, with=F], test[,estimators, with=F]))
+#       test$match <- base$image[apply(distances, 2, min.index)]
+#       test$dist <- apply(distances, 2, min.value)
+#       
+#       # Save the distance data (test image + match)
+#       pred <- test[,c("match", "image", "dist"), with=F]      
+#       
+#       if(length(data$image) > 0) setnames(data,'image','match')
+#       setnames(original,'image','match')  
+#       
+#       obs <- merge(pred, data, by="match")
+#       obs <- merge(obs, original, by="match")
+# 
+#       return(obs)
       
     })
     
@@ -130,7 +130,7 @@ shinyServer(
       
       if (is.null(input$data_file) || input$runMARIA == 0) { return()}
       
-      x <- ests[,get(input$var)] # Histogram data
+      x <- descriptors[,get(input$var)] # Histogram data
       x1 <- Data()[,get(input$var)] # User data
       
       # Draw the histogram
@@ -190,9 +190,10 @@ shinyServer(
       # draw the histogram with the specified number of bins
       if (is.null(input$data_file) || input$runMARIA == 0) { return()}
       
-      #Load the data
-      x <- data[, get(input$param)]
-  
+      #Load the simulated parameters
+      x <- parameters[, get(input$param)]
+      model <- maria_reg[[2]]
+      
       yrange <- range(model[[input$param]]$error$value, -model[[input$param]]$error$value)
       xrange <- range(model[[input$param]]$error$x)
       min <- min(model[[input$param]]$error$x[model[[input$param]]$error$value < 5])

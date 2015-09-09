@@ -9,12 +9,12 @@ min.value <- function(x){min(x)[1]}
 
 
 # Load the ground truth data
-data <- fread("model/2015-04-22_root_data.csv", header = T)
+data <- fread("../07_maria_shiny/data/root_data.csv", header = T)
 data$image <- as.character(data$image)
 data$image <- substr(data$image, start = 0, stop = nchar(data$image)-5)
 
 # Load the estimator data
-ests <- fread("model/2015-04-22_root_estimators.csv", header=T)
+ests <- fread("../07_maria_shiny/data/root_estimators.csv", header=T)
 ests$image <- as.character(ests$image)
 ests$image <- substr(ests$image, start = 0, stop = nchar(ests$image)-9)
 
@@ -86,11 +86,13 @@ ests <- ests.original
 setnames(data,'image','match')
 setkey(pred, match)
 setkey(data, match)
+pred$match <- gsub("/Users/guillaumelobet/Desktop/Work/archisimple/outputs/images/", "", pred$match)
+pred$image <- gsub("/Users/guillaumelobet/Desktop/Work/archisimple/outputs/images/", "", pred$image)
 pred <- merge(pred, data, by = "match")
 setnames(data,'match','image')
 setkey(pred, image)
 setkey(data, image)
-pred <- merge(pred, data)
+pred <- merge(pred, data, by="image")
 
 # Plot the correlation between ground truth values
 #pred <- pred[pred$tot_root_length.y < 30000,]

@@ -27,10 +27,20 @@
   load("data/maria.RData")
   
   # Load the regressions
-  load("data/maria_reg.RData")
+  load("data/maria_regs.RData")
   
-  # Load the different variable to estimate
-  load("data/maria_var.RData")
+  # Load the clustering data
+  load("data/maria_clusters.RData")
+  
+  # Load the synthetic data
+  load("data/maria_sim_data.RData")
+  
+  
+  # Load the synthetic descriptors
+  load("data/maria_descriptors.RData") 
+  
+  # Load the synthetic parameters
+  load("data/maria_parameters.RData")   
   
 #   estim <- read.csv("data/estimators.csv")
 #   estim <- as.character(estim$x)
