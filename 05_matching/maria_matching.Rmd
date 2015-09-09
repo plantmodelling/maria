@@ -1,0 +1,262 @@
+---
+title: "maria_matching"
+author: "Guillaume Lobet"
+date: "25 Feb 2015"
+output: html_document
+---
+
+![legend ](/images/maria_logo.png)
+
+## Introduction
+
+A rapid development in root research is taking place. The possibilities to observe root growth are increasing and getting widely available, resulting in an enormous collection of root images. To analyse these images, a wide range of root image analysis software exists (Lobet et al., 2013; Spalding and Miller, 2013). These tools range from automated to non-automated. If you have a limited amount of data and want to extract a lot of information, non-automated software prevents mistakes and gives the user a lot of freedom. However, the analysis is very time consuming and is therefore not suited for large datasets. Automated software can analyse a large dataset rapidly, but especially in complex root systems the analysis is limited to global data. In  semi-automated software, such as SmartRoot (Lobet et al. 2011), the level of user interactions is greater to ensure a lesser degree of analysis errors. Again, this will be more time consuming for larger root systems. In addition, when observing very large root systems, it is even hard to separate roots by eye. Therefore, new approaches to root image analysis are demanded. In this chapter we present the steps to a new method: Model Assisted Root Image Analysis (MARIA). With this method an entirely new approach is taken, with the goal to both automate the process and make extracting information from very complex root systems possible.
+
+## The idea: comparing modelled with experimental images
+
+Often automated software is not well suited to analyse local root traits. However, more global traits, such as area, can be analysed very well. In the proposed new method, modelled images will be compared with experimental images based on these kind of global traits, the so called image descriptors. The image descriptors are describing the image in numbers. Based on these image descriptors the experimental image will be matched with the modelled images. When these images can be matched accordingly, the underlying parameters of the modelled image can tell us more about the local traits of the roots on the experimental image. 
+
+![legend ](/images/maria_pipeline.png)
+
+## The model: Archisimple
+
+Models that predict and reconstruct plant development are increasingly used in plant biology. These models are based on mathematical formulae which describe different components of plant growth. In studying root systems models are very promising, especially to overcome some issues as mentioned in the introductory paragraph. By revealing certain relationships between characteristics of the RSA, effort put into collecting data could be reduced. Integrating several models enables researchers to predict the effect of certain changes in the plant or the environment on the roots. Also genetics can be integrated into RSA modelling, giving the potential to predict effect of genetic changes on roots, which would be very valuable for crop improvement.
+
+In spite of this big potential, the current models are not yet widely used. The representation of root systems is often far from realistic and the models are often very specific to a certain root type or species. In addition, a lot of these models have a large number of parameters, which complicates their integration into other models. For our proposed method, it is important to use a model which generates realistic root systems and is suitable for a large range of root systems. The proposed model is therefore ArchiSimple (Pagès et al. 2014). ArchiSimple is based on few parameters, with the most important being the relation between the root tip diameter and the root elongation rate (Pagès and Picon-Cochard 2014, Pagès et al. 2014). In addition, random variation is part of the used model, so the same parameters can produce different root systems. Figure 32 shows three examples of root systems produced by the model ArchiSimple. These root systems differ in age, but also in several other properties such as the lateral root angle and diameter. The root systems presented here are very comparable to monocot root systems. Pagès and Picon-Cochard (2014) showed that ArchiSimple was very well suited for modelling the root system architecture of poaceae. However, it is important to note that ArchiSimple is a generic model and by changing the parameters other type of root systems can be produced. For example, a dicot root with one taproot can be easily produced by changing the number of new main root axes induced to zero. It is the goal to produce a generic method to analyse root images and with ArchiSimple this should be possible.
+
+Some first tests with changing the parameters have been done. This gave a clear view on the abilities of the model and what effect changing a certain parameter had. For MARIA to work, a library of image descriptors (see next section) of different parameter sets needs to be produced. To test whether this library covers the expected root systems, a comparison with experimental images should be done. The real data can be extracted from the experimental images with SmartRoot. From previous research, a big collection of this kind of data is available. This can then be compared with the ground truth values of the modelled images. A first step would be to see whether it would be possible to separate dicots from monocots. One correct way to do that, would be by using a PCA analysis and compare the different PC values. 
+
+## The image descriptors
+
+As mentioned before, instead of directly extracting local information about roots, image descriptors to compare the experimental with the modelled images will be used. These image descriptors are designed to extract a wide range of information. They range from very logical descriptors such as total root area and depth of the root system, to less obvious descriptors such as the length of the blanc spaces between individual roots. In attachment 3 an entire list with the descriptors and their description can be found. To extract the descriptors, a plugin in ImageJ is developed. This plugin, MARIA-J extracts a total of 121 descriptors and is still adjustable if necessary.
+
+Part of the image descriptors described next are extracted from three different images. From the original root image, with all roots included, from an image in which main root axes are extracted and from an image in which the lateral roots are extracted. These last two images are produced using an Euclidian distance map, in which for each black pixel the minimum distance to a white pixel is calculated. Next, a skeletonized image of this distance map is produced, which only leaves the central pixel with the Euclidian distance value. This value can be seen as a representative of diameter. Based on the idea that the number of laterals is higher than the number of main axes, main axes are classified as roots with an Euclidian distance value higher than the median and lateral roots as roots with an Euclidian distance value lower or similar to this median. Because young root systems sometimes have more main axes then lateral roots, a correction is included in which roots similar to the median are classified as main axes roots, when the mean is lower than the median. It needs to be taken into account that these images are skeletonized.
+
+For all three images:
+
+- *Area* : Total number of black pixels in the image
+- *Width* : Maximal horizontal distance between two black pixels 
+- *Depth* : Maximal vertical distance between two black pixels
+- *Ratio w/d* : Ratio between width and depth
+- *CoM X* : The X coordinate of the centre of mass of black pixels 
+- *CoM Y* : The Y coordinate of the centre of mass of black pixels
+- *Densell1-4* : Density of black pixels in Ellipse 1-4 (see Supplemental figure 7)
+- *DensRect1-3* : Density of black pixels in Rectangle 1-3 (see Supplemental figure 7)
+- *Directionality* : Average direction of roots in the image (with use of the plugin “Directionality”)
+- *LengthBlancs1-2* : Average length of space between roots in ellipse 1-2 (see Supplemental figure 7)
+- *nTips* : Number of black pixels neighbouring only one other black pixel in skeletonized image
+- *meanhor1-4* : Mean number of pixels on a horizontal line in each quarter of the image (1 is top)
+- *maxhor1-4* : Max number of pixels on a horizontal line in each quarter of the image (1 is top)
+- *meanvert* : Mean number of black pixels on a vertical line in the image 
+- *maxvert* : Mean number of black pixels on a vertical line in the image
+- *number* : The number of separate objects in skeletonized image
+- *Numberdensity* : The number as described above divided by the depth of the object 
+- *X1-10* : X coordinate of the most left and most right black pixel at each fifth of the image
+
+Only for total image:
+
+- *EDMmax* : Maximum distance for a black pixel to a white pixel (maximum of Euclidian distance map) 
+- *LatDiam* : Median distance for a black pixel to a white pixel (median of Euclidian distance map) 
+
+
+![legend ](/images/maria_descriptors.png)
+
+
+## The matcing procedure
+
+For MARIA to be successful, an accurate matching procedure is essential. Very simple matching based on image descriptors can be done by using the Euclidian distance between the vectors of image descriptors. The definition of the Euclidian distance is the minimal distance between two objects. When comparing vectors of image descriptors, the difference between the different descriptors are calculated. Before this step, the data is scaled. The closest match to a vector of image descriptors will have the lowest Euclidian distance. 
+
+
+### Set the parameters
+
+```{r echo = FALSE}
+# Parameters
+library("pdist")
+setwd("model/")
+scaling = T
+weighting = T
+
+````
+
+### Load the data
+
+Two data sets are used for the matching procedure estimation. First we load the file containing the estimator obtained using MARIA-J. This dataset will be used to test the matching procedure.
+
+We also load the dataset containing the ground-truth values for the corresponding images. This last dataset will be used to validate the matching procedure.
+
+```{r echo = FALSE}
+
+# Load the ground truth data
+real <- read.csv("2015-03-05_root_data.csv", sep=",")
+real$image <- as.character(real$image)
+real$image <- substr(real$image, start = 0, stop = nchar(real$image)-5)
+
+# Load the estimator data
+ests <- read.csv("2015-03-05_root_estimators.csv", sep=",")
+ests$image <- as.character(ests$image)
+ests$image <- substr(ests$image, start = 0, stop = nchar(ests$image)-9)
+
+
+# Get the names of the columns
+gt <- colnames(real)[3:length(colnames(real))]
+es <- colnames(ests)[2:length(colnames(ests))]
+
+```
+
+
+### Correlation between estimators and ground-truth
+
+First, we 
+
+```{r echo = TRUE}
+# Get the correlations between the esitmators and the ground truth data
+we <- data.frame(gt)
+par(mfrow=c(3,3))
+i <- 1
+for(g in gt){
+  for(e in es){
+    fit <- lm(ests[[e]] ~ real[[g]])
+    r2 <- summary(fit)$r.squared
+    we[[e]][[i]] <- r2
+    if(r2 > 0.8){
+      plot(real[[g]] , ests[[e]], main=paste("r2 = ",round(r2, 3)), 
+           ylab=e, xlab=g)
+    }
+  }
+  i <- i+1
+}
+
+```
+
+### Scale the data
+
+```{r echo = FALSE}
+# scale the data
+if(scaling) ests[,2:ncol(ests)] <- scale(ests[,2:ncol(ests)])
+
+```
+
+### Weigth the data
+
+In the described matching all image descriptors had the same weight and therefore contributed equally to the Euclidian distance. However, not all image descriptors might be as valuable. To improve the matching, each image descriptor was multiplied by a certain weight. First, the average correlation of the image descriptor with each ground truth value was used as weight. 
+
+```{r echo = FALSE}
+
+# Weight the data
+if(weighting){
+  for(e in es){
+    ests[[e]] <- ests[[e]] * mean(we[[e]])
+  }
+}
+
+```
+
+### Format the data
+
+```{r echo = FALSE}
+# Get the index in each parameters combinaison
+ests$image <- as.character(ests$image)
+ests$rep <- substr(ests$image, start=nchar(ests$image)-3, stop =nchar(ests$image)-3)
+
+ind <- unique(ests$rep)
+```
+
+
+
+### Matching procedure: pair-wise distance
+
+```{r echo = FALSE}
+# Here we loop over the data in order to make multiple sample (based in the index value)
+pred = NULL
+for(i in ind){
+  
+  # get the test and base data
+  test <- ests[ests$rep == i, ]
+  base <- ests[ests$rep != i, ]
+
+  # Get the number of observations
+  nvar <- ncol(test)
+
+  # Get the distance matrix
+  distances <- as.matrix(pdist(base[,2:(nvar-1)], test[,2:(nvar-1)]))
+  
+  # Add the image names to the matrix
+  distMat <- matrix(nrow=nrow(base),ncol=nrow(test)+1)
+  distMat[,1] <- base$image
+  distMat[,2:(nrow(test)+1)] <- as.matrix(distances)
+  
+  # Find the closest match for each test image
+  for(j in 1:nrow(test)){
+    min <- min(distMat[,j+1])
+    x <- distMat[,1][distMat[,j+1] == min][1]
+    test$match[j] <- base$image[base$image == x]
+    test$dist[j] <- min  
+  }
+  
+  # Save the distance data (test image + match)
+  pred <- rbind(pred, test[c("match", "image", "dist")])
+  remove(distances)
+  remove(distMat)
+}
+```
+
+
+
+
+```{r echo = FALSE}
+# Get the parameters for the test and the matches
+obs <- merge(pred, ests, by.x="match", by.y="image")
+obs <- merge(obs, ests, by.x="image", by.y="image")
+
+# Get the ground truth for the test and the matches
+pred <- merge(pred, real, by.x="match", by.y="image")
+pred <- merge(pred, real, by.x="image", by.y="image")
+```
+
+
+
+### Plot the correlation between ground truth values
+
+```{r echo = TRUE}
+pred <- pred[pred$tot_root_length.y < 30000,]
+par(mfrow=c(3,4))
+for(v in gt){
+  fit <- lm(pred[[paste(v,".x", sep="")]] ~ pred[[paste(v,".y", sep="")]])
+  plot(pred[[paste(v,".y", sep="")]], pred[[paste(v,".x", sep="")]], col="#00000050", pch=20,
+       main=paste(v," \n r2=", round(summary(fit)$r.squared,3)), ylab="ground-truth value", xlab="estimated value")
+#   print(summary(fit))
+  abline(fit, lwd=2)
+  abline(a = 0, b=1, lty=2, lwd=2, col="#00000060")
+}
+```
+
+
+### Correlation between estimators
+
+```{r echo = TRUE}
+par(mfrow=c(3,2))
+var <- c("area", "width", "depth", "length", "tip_count", "diam_mean")
+for(v in var){
+  fit <- lm(obs[[paste(v,".x", sep="")]] ~ obs[[paste(v,".y", sep="")]])
+  plot(obs[[paste(v,".y", sep="")]], obs[[paste(v,".x", sep="")]], 
+       col="#00000050", pch=20, ylab="measured value", xlab="estimated value",
+       main=paste(v, "\n r2 = ",round(summary(fit)$r.squared,4)))
+  abline(fit, lwd=2)
+  abline(a = 0, b=1, lty=2, lwd=2, col="#00000060")
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
