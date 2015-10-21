@@ -195,14 +195,14 @@ int P_sacrificeTime=10; /* Temps auquel la racine est sacrifiée */
 
 /* Variables globales diverses */
 
-long temps=0;  /* Le temps, en jours */
+long temps = 0;  /* Le temps, en jours */
 r3 orig;      /* Position d'origine du système racinaire */
-char P_outputName [80] = "output.txt";  /* Name of the output file*/
-char P_outputName2 [100] = "output2.txt"; //MODIFBEN : ajout d'un deuxième outputname pour inclure le pas de temps
+char P_outputName [100] = "output.txt";  /* Name of the output file*/
+char P_outputName2 [150] = "output2.txt"; //MODIFBEN : ajout d'un deuxième outputname pour inclure le pas de temps
 int P_type = 1; /*Switch: 1 = 3D ; 2 = 2D ; 3 = Shovelomics*/
 float P_IC_meca = 0.02; /*Soil constrain */
 int P_shovel = 20; /* Depth of the shovel, for the shovelomics simulations*/ 
-int P_maxLatAge = 20; /*Maximum age for a lateral root*/
+float P_maxLatAge = 20; /*Maximum age for a lateral root*/
 
 int dpi = 30;
 float scale = (dpi ) / 2.54;
@@ -365,7 +365,7 @@ void ouvreFichiers(void)
 void ouvreFichiersOutput(void)
 /* Cette fonction ouvre les fichiers, en écriture */
 {
-  sprintf(P_outputName2, "%s-%i.rsml", P_outputName, temps); //MODIFBEN : ajout d'un outputname incluant le pas de temps
+  sprintf(P_outputName2, "%s-%ld.rsml", P_outputName, temps); //MODIFBEN : ajout d'un outputname incluant le pas de temps
   //printf("%s", P_outputName2); // MODIFBEN : ATTENTION, nécessite que le batch R soit adapté en conséquence.
   FSeg=fopen(P_outputName2,"w");
 //  FSynth=fopen("synth.txt","w");
@@ -1532,7 +1532,7 @@ char bid[MAXLINE];
 
   fscanf(FPar,"%f",&P_diamMax);
   fgets(bid,MAXLINE-1,FPar); // reste de la ligne
-  P_diamMax = P_diamMax * dRandUnif(); // #ModifGui -> Add variations in the ramification
+  P_diamMax = P_diamMax ;// dRandUnif(); // #ModifGui -> Add variations in the ramification
 
   fscanf(FPar,"%f",&P_penteVitDiam);
   fgets(bid,MAXLINE-1,FPar); // reste de la ligne
@@ -1543,7 +1543,7 @@ char bid[MAXLINE];
 
   fscanf(FPar,"%f",&P_distRamif);
   fgets(bid,MAXLINE-1,FPar); // reste de la ligne
-  P_distRamif = P_distRamif * dRandUnif(); // #ModifGui -> Add variations in the ramification
+  P_distRamif = P_distRamif;// * dRandUnif(); // #ModifGui -> Add variations in the ramification
 
   fscanf(FPar,"%f",&P_propDiamRamif);
   fgets(bid,MAXLINE-1,FPar); // reste de la ligne
@@ -1582,7 +1582,7 @@ char bid[MAXLINE];
   fscanf(FPar,"%i",&P_shovel); // Depth of the shovelomics
   fgets(bid,MAXLINE-1,FPar);
 
-  fscanf(FPar,"%i",&P_maxLatAge); // Max growing age for the laterals
+  fscanf(FPar,"%f",&P_maxLatAge); // Max growing age for the laterals
   fgets(bid,MAXLINE-1,FPar);
 
   fscanf(FPar,"%f",&P_angInitMoyVertPrim); // Angle for the primary emission
@@ -2263,7 +2263,7 @@ fprintf(FSeg,"%i",P_type);
 fprintf(FSeg,"</parameter>\n");
 
 fprintf(FSeg,"      <parameter name='P_maxLatAge'>");
-fprintf(FSeg,"%i",P_maxLatAge);
+fprintf(FSeg,"%f",P_maxLatAge);
 fprintf(FSeg,"</parameter>\n");
 
 fprintf(FSeg,"    </parameters>\n");  
@@ -2555,7 +2555,7 @@ while (temps < P_duree)
 
 
   inc = inc + 1;
-  if((inc == 15 & temps > 5)|| inc == P_duree) 
+  if((inc == 15 & temps > 5) || inc == P_duree) 
     {
       ouvreFichiersOutput(); //MODIFBEN : ouverture du fichier d'output à chaque T pour incrémenter le nom de fichier. La fonction est modifiée en conséquence
       imprimeSRSegments(sR);

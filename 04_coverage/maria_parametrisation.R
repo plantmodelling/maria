@@ -111,7 +111,7 @@ for(v in ground_truths){
   fit <- lm(y ~ x) 
   # predicts + interval
   newx <- seq(0, max(x), length.out=500)
-  preds <- predict(fit, newdata = data.frame(x=newx), interval = 'confidence', level=0.999)
+  preds <- predict(fit, newdata = data.frame(x=newx), interval = 'prediction', level=0.999)
   error <- data.frame("value"=((preds[,1] - preds[,2]) / max(preds[,1]))*100, "x"= newx)
   model[[v]][['error']] <- error
   model[[v]][['pred']] <- preds
@@ -122,7 +122,7 @@ for(v in ground_truths){
        ylab="ground-truth", xlab="prediction")
   polygon(c(rev(newx), newx), c(rev(preds[ ,3]), preds[ ,2]), col = '#dc021880', border = NA)
   abline(fit, lwd=2)
-  points(x, y, col="#00000010", pch=20)
+  #points(x, y, col="#00000010", pch=20)
   abline(a = 0, b=1, lty=2, lwd=2, col="#00000060")
 }
 remove(fit, preds, newx, x, y, v)

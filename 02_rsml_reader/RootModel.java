@@ -1,6 +1,7 @@
 
 
 import ij.*;
+import ij.gui.OvalRoi;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
 import ij.measure.ResultsTable;
@@ -1146,7 +1147,7 @@ class RootModel extends WindowAdapter{
      * @param convexhull
      * @return
      */
-    public ImageProcessor createImage(boolean color, int line, boolean real, boolean convexhull){
+    public ImageProcessor createImage(boolean color, int line, boolean real, boolean convexhull, boolean tag){
     	
     	Root r;
     	Node n, n1;
@@ -1195,6 +1196,10 @@ class RootModel extends WindowAdapter{
 		    		}
 	    			tracingP.drawLine(xRoi[xRoi.length-1]+rect.x, yRoi[xRoi.length-1]+rect.y, xRoi[0]+rect.x, yRoi[0]+rect.y);
 				}
+			}
+			if(tag){
+				OvalRoi roi = new OvalRoi(w, h, 50, 50);
+				tracingP.fill(roi);
 			}
 			tracingP = tracing.getProcessor();
     	}

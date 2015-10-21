@@ -21,64 +21,42 @@ shinyServer(
       
       if(input$runMARIA == 0){return()}
       
-      r <- nrow(ests)
-      d <- nrow(Data())
+      #r <- nrow(ests)
+      descriptors <- Data()
+      d <- nrow(descriptors)
       
-      # Get the estimations using the machine learning regressions.
-      results <- data.frame(id = c(1:nrow(ests)))
+      # check which regression is better for every variable
+      first <- which(maria_regs$best < 0) 
+      second <- which(maria_regs$best >= 0) 
+      
+      # Get the predictions from the machine learning
+      # This has to be done in two passes, since the machine learning 
+      # was build iterativelly. 
+      results <- data.frame()
+      results1 <- data.frame()
+      
       for(k in 1:2){
-        reg <- maria_reg[[k]]
-        to_est <- names(reg)
-        results <- data.frame(id = c(1:nrow(ests)))
-        for(te in to_est){
-          preds <- predict(reg[[te]]$fit, newdata=ests)
-          results <- cbind(results, preds)
-        }
-        colnames(results) <- c("id", to_est)
-        if(k < length(maria_reg)){
-          ests <- cbind(ests, results)
+        reg <- maria_regs[[k]]
+        if(!is.null(reg)){
+          to_est <- names(reg)
+          results <- data.frame()
+          for(te in to_est){
+            preds <- predict(reg[[te]], newdata=descriptors)
+            if(length(results) == 0) results <- preds
+            else results <- cbind(results, preds)
+          }
+          colnames(results) <- c(to_est)
+          if(k == 1){
+            descriptors <- cbind(descriptors, results)
+            results_1 <- results
+          }
         }
       }
-      colnames(results) <- c("id", to_est)
+      new_names <- gsub(" ","", c(colnames(results_1[,first]), colnames(results[,second])))
+      results <- data.frame(cbind(results_1[,first], results[,second]))
+      colnames(results) <- new_names        
 
       return(results)
-      
-      # Reduce the size of the dataset
-      #message(nrow(ests))
-      #ests <- ests[ests$depth > min(Data()$depth)*0.8 & ests$depth < max(Data()$depth) * 1.2,]
-      #ests <- ests[ests$depth > (min(rs$depth)*0.8) & ests$depth < (max(rs$depth) * 1.2),]
-      #message(nrow(ests))
-#       
-#       original <- ests[,c("image", "depth", "width", "area"), with=F]
-#       
-#       # Merge the data and the test for the weighting
-#       ests <- rbind(ests, Data())
-#       
-#       # scale the data
-#       ests[,2:ncol(ests)] = data.table(scale(ests[, 2:ncol(ests), with=F]))
-#       
-#       # Weight the data
-#       for(e in estimators) ests[[e]] <- ests[[e]] * mean(weights[[e]])
-#       
-#       test <- ests[(r+1):nrow(ests),]
-#       base <- ests[0:r,]
-#       nvar <- length(estimators)      
-#       
-#       # Get the distance matrix
-#       distances <- as.matrix(pdist(base[,estimators, with=F], test[,estimators, with=F]))
-#       test$match <- base$image[apply(distances, 2, min.index)]
-#       test$dist <- apply(distances, 2, min.value)
-#       
-#       # Save the distance data (test image + match)
-#       pred <- test[,c("match", "image", "dist"), with=F]      
-#       
-#       if(length(data$image) > 0) setnames(data,'image','match')
-#       setnames(original,'image','match')  
-#       
-#       obs <- merge(pred, data, by="match")
-#       obs <- merge(obs, original, by="match")
-# 
-#       return(obs)
       
     })
     
@@ -121,21 +99,19 @@ shinyServer(
     
     output$distPlot <- renderPlot({      
       
-#       input$var <- "diam_max"
-#      x <- ests[,get(input$var)]
-#       hist(x, breaks = 50, col = 'white', border = 'white', xlab=input$var, freq=F, main=paste("Histogram of ",input$var))
-#      d <- density(x)      
-#      plot(d, type='n', axes=F, xlab=input$var, xlim=range(x), main=paste("Histogram of ",input$var)); axis(1); axis(2)
-#      polygon(d, col=col.distri, border=NA)  
-      
       if (is.null(input$data_file) || input$runMARIA == 0) { return()}
       
       x <- descriptors[,get(input$var)] # Histogram data
       x1 <- Data()[,get(input$var)] # User data
-      
+
       # Draw the histogram
       d <- density(x)      
-      plot(d, type='n', axes=F, xlab=input$var, xlim=range(x, x1), main=paste("Histogram of ",input$var)); axis(1); axis(2)
+      plot(d, type='n', 
+           axes=F, 
+           xlab=input$var, 
+           xlim=range(x, x1), 
+           main=paste("Histogram of ",input$var)); 
+      axis(1); axis(2)
       polygon(d, col=col.distri, border=NA)      
       
       
@@ -151,71 +127,38 @@ shinyServer(
     # Plot the parameters distribution
     
     output$resultPlot <- renderPlot({
-      
-#       
-#       x <- data[, get(input$param)]
-#       
-#       # Plot 1
-#       yrange <- range(model[[input$param]]$error$value, -model[[input$param]]$error$value)
-#       xrange <- range(model[[input$param]]$error$x)
-#       min <- min(model[[input$param]]$error$x[model[[input$param]]$error$value < 5])
-#       max <- max(model[[input$param]]$error$x[model[[input$param]]$error$value < 5])
-#       min.y <- min(yrange)
-#       min.x <- min(xrange)
-#       max.y <- max(yrange)
-#       max.x <- max(xrange)
-#       
-#       layout(matrix(c(1,2), 2, 1, byrow = TRUE), heights=c(1,3))      
-#       # Error
-#       par(mar=c(0, 4, 3, 3))
-#       plot(x, type='n', axes=F, main=paste("Histogram of ",input$param),
-#            ylim=yrange, xlim=xrange, ylab="error [%]")
-#       polygon(c(min.x, min.x, min, min), c(min.y, max.y, max.y, min.y), col="#dc021820", border = NA)
-#       polygon(c(max, max, max.x, max.x), c(min.y, max.y, max.y, min.y), col="#dc021820", border = NA)
-#       polygon(c(rev(model[[input$param]]$error$x), model[[input$param]]$error$x), 
-#               c(rev(model[[input$param]]$error$value), -model[[input$param]]$error$value), 
-#               col = col.error, border = NA)
-#       abline(h=0, col="white", lty=2)  
-#       axis(2)
-#       # Histogram
-#       par(mar=c(4, 4, 2, 3))
-# #       hist(x, breaks = 150, col = 'darkgrey', border = 'white', xlab=input$param, freq=F, main="", xlim=xrange)
-#       d <- density(x)      
-#       plot(d, type='n', axes=F, xlab=input$param, xlim=range(x), main=""); axis(1); axis(2)
-#       polygon(d, col=col.distri, border=NA)
-#       polygon(c(min.x, min.x, min, min), c(0, 10, 10, 0), col=col.out, border = NA)
-#       polygon(c(max, max, max.x, max.x), c(0, 10, 10, 0), col=col.out, border = NA)
-#       
-      
+  
       # draw the histogram with the specified number of bins
       if (is.null(input$data_file) || input$runMARIA == 0) { return()}
       
       #Load the simulated parameters
       x <- parameters[, get(input$param)]
-      model <- maria_reg[[2]]
-      
-      yrange <- range(model[[input$param]]$error$value, -model[[input$param]]$error$value)
-      xrange <- range(model[[input$param]]$error$x)
-      min <- min(model[[input$param]]$error$x[model[[input$param]]$error$value < 5])
-      max <- max(model[[input$param]]$error$x[model[[input$param]]$error$value < 5])
-      min.y <- min(yrange)
-      min.x <- min(xrange)
-      max.y <- max(yrange)
-      max.x <- max(xrange)
+      model <- maria_regs
+
+      # yrange <- range(model[[input$param]]$error, -model[[input$param]]$error)
+      # xrange <- range(model[[input$param]]$x, na.rm = T)
+#       min <- min(model[[input$param]]$x[model[[input$param]]$error < 5])
+#       max <- max(model[[input$param]]$x[model[[input$param]]$error < 5])
+#       min.y <- min(yrange)
+#       min.x <- min(xrange)
+#       max.y <- max(yrange)
+#       max.x <- max(xrange)
 
       # Plot 2
       layout(matrix(c(1,2), 2, 1, byrow = TRUE), heights=c(1,3))      
       
       # Error plot
       par(mar=c(0, 4, 3, 3))
-      plot(x, type='n', axes=F, main=paste("Histogram of ",input$param),ylim=yrange, xlim=xrange, ylab="error [%]")
-      polygon(c(min.x, min.x, min, min), c(min.y, max.y, max.y, min.y), col=col.out, border = NA)
-      polygon(c(max, max, max.x, max.x), c(min.y, max.y, max.y, min.y), col=col.out, border = NA)
-      polygon(c(rev(model[[input$param]]$error$x), model[[input$param]]$error$x), 
-              c(rev(model[[input$param]]$error$value), -model[[input$param]]$error$value), 
-              col = col.error, border = NA)
-      abline(h=0, col="white", lty=2)  
-      abline(v=Results()[, get(input$param)], col=col.passed)
+      plot(x, type='n', axes=F, 
+           # ylim=yrange, xlim=xrange, 
+           main=paste("Histogram of ",input$param), ylab="error [%]")
+#       polygon(c(min.x, min.x, min, min), c(min.y, max.y, max.y, min.y), col=col.out, border = NA)
+#       polygon(c(max, max, max.x, max.x), c(min.y, max.y, max.y, min.y), col=col.out, border = NA)
+#       polygon(c(rev(model[[input$param]]$x), model[[input$param]]$x), 
+#               c(rev(model[[input$param]]$error), -model[[input$param]]$error), 
+#               col = col.error, border = NA)
+#       abline(h=0, col="white", lty=2)  
+#       abline(v=Results()[, input$param], col=col.passed)
       axis(2)
       
       
@@ -223,11 +166,12 @@ shinyServer(
       par(mar=c(4, 4, 2, 3))
 #       hist(x, breaks = 150, col = 'darkgrey', border = 'white', xlab=input$param, freq=F, main="", xlim=xrange)
       d <- density(x)      
-      plot(d, type='n', axes=F, xlab=input$param, xlim=range(x), main=""); axis(1); axis(2)
+      plot(d, type='n', axes=F, xlab=input$param, xlim=range(x), main=""); 
+      axis(1); axis(2)
       polygon(d, col=col.distri, border=NA)
-      polygon(c(min.x, min.x, min, min), c(0, 10, 10, 0), col=col.out, border = NA)
-      polygon(c(max, max, max.x, max.x), c(0, 10, 10, 0), col=col.out, border = NA)
-      abline(v=Results()[,get(input$param)], col="#3ac090")
+      # polygon(c(min.x, min.x, min, min), c(0, 10, 10, 0), col=col.out, border = NA)
+      # polygon(c(max, max, max.x, max.x), c(0, 10, 10, 0), col=col.out, border = NA)
+      abline(v=Results()[,input$param], col="#3ac090")
     })
     
     
@@ -285,11 +229,12 @@ shinyServer(
     output$caption1 <- renderUI( {
       if (is.null(input$data_file) || input$runMARIA == 0) { return()}
       
+      descriptors_names <- colnames(descriptors[2:ncol(descriptors)])
       outdata <- NULL
       proceed <- T
-      for(e in estimators){
+      for(e in descriptors_names){
         x1 <- Data()[,get(e)]
-        x2 <- ests[,get(e)]
+        x2 <- descriptors[,get(e)]
         x2 <- x2[!is.nan(x2)]
         if(min(x1) < min(x2) || max(x1) > max(x2)){
           outdata <- c(outdata, e)
@@ -298,7 +243,7 @@ shinyServer(
       }
       if(proceed) "Data are in range"
       else {
-        param_error <- 1-round(length(outdata) / length(estimators), 3)        
+        param_error <- 1-round(length(outdata) / length(descriptors_names), 3)        
         message <- paste("<b>WARNING: Data out of range:</b>")
         for(od in outdata) message <- paste(message, od, ",")
         message <- paste(message, "</br>Score = ",param_error)

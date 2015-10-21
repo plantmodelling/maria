@@ -50,7 +50,7 @@ public class RSML_reader {
     	  model = new RootModel(rsml[i].getAbsolutePath());
     	  if(model.getNRoot() > 0){
     		  // Save the image
-    		  ImagePlus ip = new ImagePlus(rsml[i].getName(),model.createImage(false, 0, true, false));  
+    		  ImagePlus ip = new ImagePlus(rsml[i].getName(),model.createImage(false, 0, true, false, true));  
     		  
     		  progression = (i/rsml.length)*100;
     		  if(progression > percent){    			

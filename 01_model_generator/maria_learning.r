@@ -54,6 +54,85 @@ divideSet <- function(size, perc=30)
 }
 
 
+#--------------------------------------------------------------------------
+# function fsample samples a number of "nr" values within the provided "range"
+# where it ensures that all values within the range where drawn when the
+# number of values to sample is larger than the number of values in the
+# given range
+# Arguments:
+# range        range where to sample from
+# nr            nr of values to sample
+#
+# Returns:
+# A vector of size nr of sampled values from the provided range
+#--------------------------------------------------------------------------
+fsample <- function(range, nr)
+{
+  l <- length(seq(range))
+  
+  set.seed(42)
+  
+  if ( nr <= l )
+    res <-sample(range,nr)
+  else
+  {
+    div  <- nr %/% l
+    rest <- nr %% l
+    
+    cur <- 1
+    
+    res <- rep(0, nr)
+    
+    for(i in 1:div)
+    {
+      set.seed(42 + i)
+      res[cur : (cur + l - 1)] <- sample(range, l)
+      cur <- cur + l
+    }
+    
+    if (rest > 0)
+    {
+      set.seed(42)
+      res[cur : nr] <- sample(range, nr - cur  + 1)
+    }
+    
+  }         
+  
+  return(res)
+}
+
+#----------------------------------------------------------------------
+#function crossVal returns cross-validation matrix. The matrix has a
+#number of "nrfolds" columns. Each column represents the indices of a fold.
+#If the number of folds is not a divisor of the sample size, i.e. one fold
+#has not enough values, then the missing entries are filled by already
+#used values.
+#
+#Arguments:
+#size                The sample size
+#foldNr            The number of folds
+#
+#Returns:
+#A matrix of folds
+#
+#-----------------------------------------------------------------------
+#Example :
+#>crossVal(10, 5)
+#      [,1] [,2] [,3] [,4] [,5]
+#[1,]   10    3    4    5    2
+#[2,]    9    6    8    1    7
+#
+#-----------------------------------------------------------------------
+crossVal <- function(size, nrfolds)
+{
+  if ( nrfolds > size )
+    stop("The number of folds has to be smaller or equal to the sample size")
+  nrmiss <- size %% nrfolds
+  crossSeq <- fsample(1:size, size + nrfolds-nrmiss)
+  return(matrix(crossSeq, ncol = nrfolds))
+}
+
+
 #----------------------------------------------------------------------
 #function predNAvalues predicts for each coloumn the missing NA values 
 #with a random forest of 10 trees
@@ -123,7 +202,7 @@ fitsPrecision <- function(Xdata, mfit)
   
   for(i in 1:n)
   {
-    fit        <- predict(mfit[[i]]$fit, Xdata)
+    fit        <- predict(mfit[[i]], Xdata)
     mean1      <- mean(fit)
     var1       <- var(fit)
     mean2      <- mean(Xdata[  , names(mfit)[i]  ])
@@ -194,15 +273,15 @@ modelLM<-function(Xdata, colnr, rmfit, ntop)
     
     # predicts + interval
     # predicts + interval
-    predData <- data.frame(seq(0, max(Xdata[,tofit]), length.out=500))
-    for(v in var) predData <- cbind(predData, data.frame(seq(0, max(Xdata[,v]), length.out=500)))
-    colnames(predData) <- c(colnames(Xdata)[tofit], var)
+#     predData <- data.frame(seq(0, max(Xdata[,tofit]), length.out=500))
+#     for(v in var) predData <- cbind(predData, data.frame(seq(0, max(Xdata[,v]), length.out=500)))
+#     colnames(predData) <- c(colnames(Xdata)[tofit], var)
+#     
+#     preds <- predict(fit, newdata = predData, interval = 'confidence', level=0.999)
+#     error <- data.frame("value"=((preds[,1] - preds[,2]) / max(preds[,1]))*100, "x"= predData)
     
-    preds <- predict(fit, newdata = predData, interval = 'confidence', level=0.999)
-    error <- data.frame("value"=((preds[,1] - preds[,2]) / max(preds[,1]))*100, "x"= predData)
     
-    
-    resLM[[i]] <- list(fit = fit, error = error)
+    resLM[[i]] <- fit#list(fit = fit, error = error)
   }
   #List entries equal the name of the response variables in order to easily refer to its model
   names(resLM) <- names(Xdata)[colnr]
@@ -384,7 +463,7 @@ maria_learning <- function(fname, f_vec, p_vec, nrt, ntop, acc)
   #data  <- read.csv(get('fname'), header=TRUE)
   data <- fname
   # Check the validity of predictor and response indices
-  if(validityTest(f_vec,p_vec,dim(data)[2])) message("Dataset is valid")
+  validityTest(f_vec,p_vec,dim(data)[2])
   # Update the index vector of response variables 
   temp      <- f_vec
   f_vec     <- NULL
@@ -421,10 +500,12 @@ maria_learning <- function(fname, f_vec, p_vec, nrt, ntop, acc)
   # Compute the precision of the models
   precision  <- fitsPrecision(data.test, resLM)
   
+  #print(precision)
+  
   # FINAL PREDICTION
   
   # Determine the model(s) whose precision is/are below a desired accuracy
-  indexvec   <- which(precision[1,] < acc)
+  indexvec   <- which(precision[,1] < acc)
   extargets  <- f_vec[indexvec]
   
   # Re-generate random forest model(s), where this time 
@@ -433,7 +514,8 @@ maria_learning <- function(fname, f_vec, p_vec, nrt, ntop, acc)
  
   if (length(extargets) == 0 || length(extargets)==1 && is.na(extargets))
   {
-    return(resLM)
+    best <- precision[,1]
+    return(list(first = resLM, second = NULL, best = best))
   }
   else
   {
@@ -442,8 +524,49 @@ maria_learning <- function(fname, f_vec, p_vec, nrt, ntop, acc)
     # Generate final linear model(s)
     result     <- modelLM(data.train, f_vec, resFinal, ntop)
     mean       <- fitsPrecision(data.test, result)
-    return(list(first = resLM, second = result, below = colnames(data.train)[extargets]
-))
+
+    #print(mean)
+    
+    best <- mean[,1] - precision[,1]
+
+    return(list(first = resLM, second = result, best = best, prec_1 = precision, prec_2 = mean))
   }
   
 }
+
+
+test_training <- function(temp_reg, descriptors){
+  # check which regression is better for every variable
+  first <- which(temp_reg$best < 0) 
+  second <- which(temp_reg$best >= 0) 
+  
+  # Get the predictions from the machine learning
+  # This has to be done in two passes, since the machine learning 
+  # was build iterativelly. 
+  results <- data.frame()
+  results1 <- data.frame()
+  
+  for(k in 1:2){
+    reg <- temp_reg[[k]]
+    if(!is.null(reg)){
+      to_est <- names(reg)
+      results <- data.frame()
+      for(te in to_est){
+        preds <- predict(reg[[te]], newdata=descriptors)
+        if(length(results) == 0) results <- preds
+        else results <- cbind(results, preds)
+      }
+      colnames(results) <- c(to_est)
+      if(k == 1){
+        descriptors <- cbind(descriptors, results)
+        results_1 <- results
+      }
+    }
+  }
+  new_names <- gsub(" ","", c(colnames(results_1[,first]), colnames(results[,second])))
+  results <- data.frame(cbind(results_1[,first], results[,second]))
+  colnames(results) <- new_names  
+  
+  return(results)
+}
+

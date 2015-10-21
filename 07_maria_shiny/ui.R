@@ -10,7 +10,7 @@ shinyUI(fluidPage(
   sidebarLayout(
     sidebarPanel(
       #h4("Model Assisted Root Image Analysis"),
-      helpText("MARIA is a Modal Assisted Root Image Analysis pipeline developped by Guillaume Lobet, Iko Koevoets and Loïc Pagès.
+      helpText("MARIA is a Model Assisted Root Image Analysis pipeline developped by Guillaume Lobet, Iko Koevoets, Manu Noll and Loïc Pagès.
              "),
       tags$hr(),      
       
