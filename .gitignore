@@ -1,3 +1,12 @@
 .Rproj.user
 .Rhistory
 .RData
+/05_validation/rice/images
+/05_validation/wheat/images
+/05_validation/dicot/images
+/05_validation/monocot/images
+/01_model_generator/outputs
+/01_model_generator/data
+/09_archives
+/09_sandbox
+

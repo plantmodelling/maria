@@ -1,0 +1,16 @@
+- name: wheat_data
+- specie: wheat
+- setup: pouches
+- type: experimental
+- provider: Darren Wells
+- scale: 1
+- analysis: 
+   - RootNav
+   - MARIA
+- paper: 
+   - title: Phenotyping pipeline reveals major seedling root growth QTL in hexaploid wheat.
+     authors: Atkinson, J. A., Wingen, L. U., Griffiths, M., Pound, M. P., Gaju, O., Foulkes, M. J., et al.
+     year: 2015
+     journal: Journal of Experimental Botany
+     volume: 66(8)
+     pages: 2283-2292

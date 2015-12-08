@@ -1,0 +1,17 @@
+- name: arabidopsis_data
+- specie: Arabidopsis thaliana
+- setup: petri dish
+- type: experimental
+- provider: Anieska Deja
+- scale: 1
+- analysis: 
+   - GiaRoots
+   - MARIA
+- paper: 
+   - title: 
+     authors: 
+     year: 
+     journal: unpublished 
+     volume: 
+     pages: 
+

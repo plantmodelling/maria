@@ -31,10 +31,10 @@ public class MARIA_ extends PlugInFrame{
 	
 	public static void main(String args[]) {
 		if(args.length > 0){
-			new RootAnalysis(new File(args[0]), 
-					args[1], Float.valueOf(args[2]), 2.54f, 
+			new RootAnalysis(new File(args[0]), args[1], Float.valueOf(args[2]), 2.54f, 
 					true, 50, false, false, false, false
-					);		
+					);
+			System.exit(0);
 		}
 		else{
 			prefs = Preferences.userRoot().node("/ImageJ/plugins");
@@ -47,5 +47,6 @@ public class MARIA_ extends PlugInFrame{
 				}
 			});
 		}
+		//System.exit(0);
 	}
 }

@@ -1,0 +1,17 @@
+- name: rice_data
+- specie: rice
+- setup: gellan gum
+- type: experimental
+- provider: DIRT
+- scale: 1
+- analysis: 
+   - DIRT
+   - MARIA
+- paper: 
+   - title: Imaging and Analysis Platform for Automatic Phenotyping and Trait Ranking of Plant Root Systems
+     authors: Iyer-Pascuzzi, A., Symonova, O., Mileyko, Y., Hao, Y., Belcher, H., Harer, J., et al.
+     year: 2010
+     journal: Plant Physiology
+     volume: 152(3)
+     pages: 1148-1157
+

@@ -36,7 +36,7 @@ public class RootAnalysis {
 	// Export parameters
 	static File dirAll, dirParam;//, dirConvex;	
 	static File[] images; 		
-	static String  csvParamFolder, imName, baseName, fullName, tpsFolder;
+	static String  csvParamFolder, csvParamAnalysis, imName, baseName, fullName, tpsFolder;
 	
 	// Analysis parameters
 	static int nROI, nEFD, nCoord, counter;
@@ -54,7 +54,7 @@ public class RootAnalysis {
     
     // Tools
 	static ResultsTable rt = new ResultsTable();
-	static PrintWriter pwParam, pwTPS;	
+	static PrintWriter pwParam, pwTPS, pwAnalysis;	
 	static ParticleAnalyzer pa;	
 	static Analyzer an;
 	
@@ -82,6 +82,7 @@ public class RootAnalysis {
 		scaleCm = scaleC;
 		dirAll = f;
 		csvParamFolder = file;
+		csvParamAnalysis = file.substring(0, file.length()-4)+"-analysis.csv";
 		tpsFolder = file.substring(0, file.length()-4)+"-shape.tps";
 		saveTPS = tps;
 		
@@ -127,7 +128,9 @@ public class RootAnalysis {
 
 		// Initialize CSV
 		pwParam = Util.initializeCSV(csvParamFolder);
+		pwAnalysis = Util.initializeCSV(csvParamAnalysis);
 		printParamCSVHeader();		
+		printAnalysisCSVHeader();		
 		
 		if(saveTPS) pwTPS = Util.initializeCSV(tpsFolder);
 
@@ -143,13 +146,17 @@ public class RootAnalysis {
 		int percent = 0;
 	    float progression = 0;
 		for(int i = 0; i < images.length; i++){
+			
+			long startD1 = System.currentTimeMillis();
+
 			// Open the image
 			nextImage = IJ.openImage(images[i].getAbsolutePath());
 			
 			progression = (i/images.length)*100;
   		  	if(progression > percent){    			
   			  IJ.log(percent+" % of the rsml files converted. "+(images.length-i)+" files remaining.");
-  			  percent = percent + 10;
+  			  System.out.println(percent+" % of the rsml files converted. "+(images.length-i)+" files remaining.");
+  			  percent = percent + 5;
   		  	}
 	    	
 			// Reset the ROI to the size of the image. This is done to prevent previously drawn ROI (ImageJ keep them in memory) to empede the analysis
@@ -161,10 +168,14 @@ public class RootAnalysis {
 			
 			// Measure the image			
 			getDescriptors(nextImage, i);
-		
+			sendAnalysisToCSV(nextImage.getTitle(), nextImage.getWidth(), nextImage.getHeight(), startD1, System.currentTimeMillis());
+
 			// Close the current image
 			nextImage.flush(); nextImage.close(); 
 			counter ++;
+			
+			IJ.log("Loading the image "+i+"/"+images.length+" in "+(startD1 - System.currentTimeMillis()));
+
 		}
 		
 		// Compute the time taken for the analysis
@@ -178,7 +189,6 @@ public class RootAnalysis {
 				
 		// Initalisation of the image
 		
-		IJ.log("Loading the image "+count+"/"+images.length+": "+baseName);
 		ImagePlus currentImage = current.duplicate();		
 		
 		// Pre-process the image
@@ -188,7 +198,7 @@ public class RootAnalysis {
 		// Resize the image to speed up the analysis (resize to width = 800)		
 		scale = scalePix / scaleCm;
 		float widthCm = ip.getWidth() / scale;
-		int maxScale = 2000;
+		int maxScale = 1000;
 		if(ip.getWidth() > maxScale){
 			float h = ip.getHeight();
 			float w = ip.getWidth();
@@ -203,7 +213,7 @@ public class RootAnalysis {
 		if(!blackRoots) ip.invert();
 		
 		// Threshold the image
-	    ip.setAutoThreshold("Li"); 
+	    ip.setAutoThreshold("Otsu"); 
 	    currentImage.setProcessor(ip);
 	    
 	    // Remove small particles in the image
@@ -275,7 +285,8 @@ public class RootAnalysis {
         counter = 0;
         
 	    // Save the images for post-processing check
-		currentImage.close();
+		currentImage.flush(); currentImage.close();
+		skelImage.flush(); skelImage.close();
 		
 	    sendParametersToCSV();
 	}
@@ -770,7 +781,26 @@ public class RootAnalysis {
 		}
 		return n-1;
 	}	
- 
+
+	/**
+	 * Print Parameters CSV header
+	 */
+	private void printAnalysisCSVHeader(){	
+		String toPrint = "image";
+		toPrint = toPrint.concat(",width,height,time_start, time_end");
+		pwAnalysis.println(toPrint);
+		pwAnalysis.flush();
+	}	
+	
+	/**
+	 * Print Parameters CSV header
+	 */
+	private void sendAnalysisToCSV(String image, int width, int height, long time1, long time2){
+		String toPrint = image+","+width+","+height+","+time1+","+time2;
+		pwAnalysis.println(toPrint);
+		pwAnalysis.flush();
+	}		
+	
 	/**
 	 * Print Parameters CSV header
 	 */
@@ -795,7 +825,7 @@ public class RootAnalysis {
 	 * Send parameters data to an CSV file
 	 */
 	private void sendParametersToCSV(){	
-		String toPrint = fullName;
+		String toPrint = baseName;
 		for(int i = 0; i < params.length; i++){
 			toPrint = toPrint.concat(","+params[i]);
 		}

@@ -23,11 +23,11 @@ options(scipen=999) # Disable scientific notation
 # Where is ArchiSimple
 setwd("/Users/guillaumelobet/Dropbox/research/projects/research/MARIA/maria_scripts/01_model_generator/") # Where is the ArchiSimple folder?
 eval = c(F,T)  # To check the number root system that will be generated, use c(F). To generate then, use c(F,T)
-verbatim <- T
+verbatim <- F
 
 # Range of parameters
-P_nbMaxPrim_range           <-  c(1) # Number of primary axes. Put 40 to have a monocot, 1 to have a dicot
-P_type_range                <- c(1) # Type of simulation (1 = 3D, 2 = 2D, 3 = shovelomics)
+P_nbMaxPrim_range           <-  c(1,40) # Number of primary axes. Put 40 to have a monocot, 1 to have a dicot
+P_type_range                <- c(1,2) # Type of simulation (1 = 3D, 2 = 2D, 3 = shovelomics)
 repetitions                 <- c(1) # number of repetitions for each parameter set
 P_duree <- 12  # Total length lenght of the simulation [days] 12 is a good compromise between the speed of the simulation and the final size of the root system
 
@@ -37,18 +37,18 @@ P_penteVitDiam_range        <- seq(from=12, to=35, by=10) # Slope between the di
 P_propDiamRamif_range       <- seq(from=0.5, to=0.9, by=0.4) # Relation between the diameter of a parent and a child root
 P_distRamif_range           <- seq(from=4, to=6, by=2) # Distance between two successive lateral roots [mm]
 P_coeffCroissRad_range      <- seq(from=0, to=0, by=0.5) # Coefficient of radial growth. 0 for monocots
-P_diamMax_range             <- seq(from=0.4, to=1.6, by=0.5) # Max diameter for the primary roots [mm]
-P_maxLatAge_range           <- seq(from=5, to=25, by=10)  # Maximal age growing age for the laterals [days]
+P_diamMax_range             <- seq(from=0.4, to=1.6, by=0.8) # Max diameter for the primary roots [mm]
+P_maxLatAge_range           <- seq(from=15, to=15, by=10)  # Maximal age growing age for the laterals [days]
 
 # Influence root exploration
 P_angLat_range              <- seq(from=0.4, to=1.5, by=1) # Emission angle for the laterals [radian]
 P_intensiteTropisme_range   <- seq(from=0.001, to=0.031, by=0.02) # strenght of the gravitropic response
-P_angInitMoyVertPrim_range  <- seq(from=1.3, to=1.7, by=0.2)  # Emission angle for the principal roots. Between 0 and PI/2 [radian]
+P_angInitMoyVertPrim_range  <- seq(from=1.3, to=1.7, by=0.4)  # Emission angle for the principal roots. Between 0 and PI/2 [radian]
 P_tertiary <- 0           # Generate the tertiary roots
 
 stochasticity <- T      # Try to have parameters covering the whoel space of posibilities by varying them.
 
-create_rsml <- T        # Create the RSML files ArchiSimple
+create_rsml <- F        # Create the RSML files ArchiSimple
 create_images <- T      # Using RSML_reader.jar
 analyse_images  <- T    # Using MARIA_J.jar
 machine_learning <- F   # Machine learning to define the equations for the fitting
@@ -127,6 +127,8 @@ for(e in eval){
       
       for(P_type in P_type_range){
         
+        message(paste0("STARTING TYPE ",P_type," SIMULATIONS FOR ",P_nbMaxPrim," PRIMARIES"))
+        
         for(P_penteVitDiam in P_penteVitDiam_range){
           
           for(P_angInitMoyVertPrim in P_angInitMoyVertPrim_range){
@@ -157,59 +159,23 @@ for(e in eval){
                                 }
              
                                 # Change the name pre-fix based on the simualtion type
-                                if(P_type == 1) basename <- paste("/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/", species, "-3D", sep="")
-                                if(P_type == 2) basename <- paste("/Users/guillaumelobet/Desktop /Work/archisimple/outputs/rsml/", species, "-2D", sep="")
-                                if(P_type == 3) basename <- paste("/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/", species, "-shov", sep="")
+                                if(P_type == 1) basename <- paste("/Users/guillaumelobet/Desktop/Work/archisimple/outputs/all/rsml/", species, "-3D", sep="")
+                                if(P_type == 2) basename <- paste("/Users/guillaumelobet/Desktop/Work/archisimple/outputs/all/rsml/", species, "-2D", sep="")
+                                if(P_type == 3) basename <- paste("/Users/guillaumelobet/Desktop/Work/archisimple/outputs/all/rsml/", species, "-shov", sep="")
                                
 
-                                if(stochasticity){
-                                  P_stocha <- (mean(diff(P_diamMax_range)) / P_diamMax) * 0.5
-                                  P_diamMax_1 <- round(P_diamMax * runif(1, 1 - P_stocha, 1 + P_stocha), 3) # Add some variability to the diameter
-                                  
-                                  P_stocha <- (mean(diff(P_angLat_range)) / P_angLat) * 0.5
-                                  P_angLat_1 <- round(P_angLat * runif(1, 1 - P_stocha, 1 + P_stocha), 3) # Add some variability to the parameter
-                                  
-                                  P_stocha <- (mean(diff(P_angInitMoyVertPrim_range)) / P_angInitMoyVertPrim) * 0.5
-                                  P_angInitMoyVertPrim_1 <- max(1,round(P_angInitMoyVertPrim  * runif(1, 1 - P_stocha, 1 + P_stocha), 3)) # Add some variability to the parameter
-                                  
-                                  P_stocha <- (mean(diff(P_penteVitDiam_range)) / P_penteVitDiam) * 0.5
-                                  P_penteVitDiam_1 <- round(P_penteVitDiam * runif(1, 1 - P_stocha, 1 + P_stocha), 1) # Add some variability to the parameter
-                                  
-                                  P_stocha <- (mean(diff(P_intensiteTropisme_range)) / P_intensiteTropisme) * 0.5
-                                  P_intensiteTropisme_1 <- round(P_intensiteTropisme  * runif(1, 1 - P_stocha, 1 + P_stocha), 5) # Add some variability to the parameter
-                                  
-                                  P_stocha <- (mean(diff(P_propDiamRamif_range)) / P_propDiamRamif) * 0.5
-                                  P_propDiamRamif_1 <- round(P_propDiamRamif  * runif(1, 1 - P_stocha, 1 + P_stocha), 3) # Add some variability to the parameter
-                                  
-                                  P_stocha <- (mean(diff(P_distRamif_range)) / P_distRamif) * 0.5
-                                  P_distRamif_1 <- round(P_distRamif  * runif(1, 1 - P_stocha, 1 + P_stocha), 3) # Add some variability to the parameter
-                                  
-                                  P_stocha <- (mean(diff(P_maxLatAge_range)) / P_maxLatAge) * 0.5
-                                  P_maxLatAge_1 <- round(P_maxLatAge  * runif(1, 1 - P_stocha, 1 + P_stocha), 2) # Add some variability to the parameter
-                                  
-                                }
-                                else{
-                                  P_diamMax_1 <- P_diamMax
-                                  P_angLat_1 <- P_angLat
-                                  P_angInitMoyVertPrim_1 <-P_angInitMoyVertPrim
-                                  P_penteVitDiam_1 <- P_penteVitDiam
-                                  P_intensiteTropisme_1 <- P_intensiteTropisme
-                                  P_propDiamRamif_1 <- P_propDiamRamif
-                                  P_distRamif_1 <- P_distRamif
-                                  P_maxLatAge_1 <- P_maxLatAge
-                                 }
                                 # Setup the name of the file, containing the principal info about the simulation
                                 name <- paste(basename, "-", 
-                                              P_penteVitDiam_1,"-", 
+                                              P_penteVitDiam,"-", 
                                               P_vitEmissionPrim, "-", 
-                                              P_angInitMoyVertPrim_1, "-",
-                                              P_intensiteTropisme_1, "-", 
-                                              P_propDiamRamif_1, "-", 
-                                              P_distRamif_1 ,"-", 
+                                              P_angInitMoyVertPrim, "-",
+                                              P_intensiteTropisme, "-", 
+                                              P_propDiamRamif, "-", 
+                                              P_distRamif,"-", 
                                               P_coeffCroissRad, "-", 
-                                              P_diamMax_1 , "-", 
-                                              P_angLat_1 , "-", 
-                                              P_maxLatAge_1, "-r", 
+                                              P_diamMax, "-", 
+                                              P_angLat, "-", 
+                                              P_maxLatAge, "-r", 
                                               i, 
                                               sep="")
                                 if(verbatim) message(name)
@@ -220,24 +186,24 @@ for(e in eval){
                                        P_nbSeminales,
                                        P_nbMaxPrim,
                                        P_diamMin,
-                                       P_diamMax_1,
-                                       P_penteVitDiam_1,
-                                       P_intensiteTropisme_1,
-                                       P_distRamif_1,
-                                       P_propDiamRamif_1,
+                                       P_diamMax,
+                                       P_penteVitDiam,
+                                       P_intensiteTropisme,
+                                       P_distRamif,
+                                       P_propDiamRamif,
                                        P_coeffVarDiamRamif,
                                        P_probaMaxArret,
                                        P_TMD,
                                        P_penteDureeVieDiamTMD,
                                        P_coeffCroissRad,
-                                       P_angLat_1,
+                                       P_angLat,
                                        P_tertiary,
                                        name,
                                        P_type,
                                        P_IC_meca,
                                        P_shovel,
-                                       P_maxLatAge_1,
-                                       P_angInitMoyVertPrim_1,
+                                       P_maxLatAge,
+                                       P_angInitMoyVertPrim,
                                        P_slopePrimAngle
                                 )
                                 cat(var, file=paste("param.txt",sep=""), sep='\n') # Create the input file for Archisimple
@@ -275,7 +241,7 @@ for(e in eval){
 
     if(create_images){
       message("Creating root images and ground truth data")
-      system('java -Xmx4000m -jar RSML_reader.jar "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/" "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/images/" "../07_maria_shiny/data/root_data.csv"')
+      system('java -Xmx4000m -jar RSML_reader.jar "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/all/rsml/" "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/all/images/" "../07_maria_shiny/data/root_all_data.csv"')
       #system('java -Xmx4000m -jar RSML_reader.jar "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/rsml/" "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/images/" "/Users/guillaumelobet//Desktop/root_data.csv"')
     }
   
@@ -283,7 +249,7 @@ for(e in eval){
     
     if(analyse_images){
       message("Analysing root images")
-      system('java -Xmx4000m -jar MARIAJ.jar "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/images/" "../07_maria_shiny/data/root_estimators.csv" "3"')  
+      system('java -Xmx4000m -jar MARIAJ.jar "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/all/images/" "../07_maria_shiny/data/root_all_estimators.csv" "3"')  
       #system('java -Xmx4000m -jar MARIAJ.jar "/Users/guillaumelobet/Desktop/Work/archisimple/outputs/images/" "/Users/guillaumelobet/Desktop/root_estimators.csv" "3"')  
     }
     

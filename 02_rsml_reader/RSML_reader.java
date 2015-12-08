@@ -19,7 +19,8 @@ public class RSML_reader {
 	private static RSML_reader instance;
 	public static String path, output, data;
 	public static boolean printData = false;
-
+	public static File[] imgs;
+	
 	/**
 	 * Constructor
 	 */
@@ -33,6 +34,14 @@ public class RSML_reader {
     		  return fileName.endsWith(".rsml");
     	  }
       });
+      
+      // Retrieve all the images files
+      File f1 = new File(output);
+      imgs = f1.listFiles(new FilenameFilter() {
+    	  public boolean accept(File directory, String fileName) {
+    		  return fileName.endsWith(".jpg");
+    	  }
+      });      
       
       // Open the different RSML files, retriev their data and get their size.
       RootModel model;
@@ -50,17 +59,16 @@ public class RSML_reader {
     	  model = new RootModel(rsml[i].getAbsolutePath());
     	  if(model.getNRoot() > 0){
     		  // Save the image
-    		  ImagePlus ip = new ImagePlus(rsml[i].getName(),model.createImage(false, 0, true, false, true));  
-    		  
+    		  if(!imageExist(rsml[i].getName())){
+    			  ImagePlus ip = new ImagePlus(rsml[i].getName(),model.createImage(false, 0, true, false, false));  
+        		  IJ.save(ip, output+System.getProperty("file.separator")+rsml[i].getName()+".jpg");	   
+    		  }
     		  progression = (i/rsml.length)*100;
     		  if(progression > percent){    			
-    			  System.out.println(percent+" % of the rsml files converted. "+(rsml.length-i)+" files remaining.");
+    			  IJ.log(percent+" % of the rsml files converted. "+(rsml.length-i)+" files remaining.");
     			  percent = percent + 10;
     		  }
-    		  
-    		  // System.out.println(output+System.getProperty("file.separator")+rsml[i].getName()+".jpg");
-    		  IJ.save(ip, output+System.getProperty("file.separator")+rsml[i].getName()+".jpg");	   
-    		  
+    		      		  
     		  // Save the data
     		  if(printData) model.sendImageData(pw, rsml[i].getName());
     	  } 	  	
@@ -68,6 +76,14 @@ public class RSML_reader {
       if(printData) pw.flush();
 	}
 
+	public static boolean imageExist(String s){
+		
+		for(int i = 0; i < imgs.length; i++){
+			if(imgs[i].getName().substring(0, imgs[i].getName().length()-9).equals(s.substring(0, s.length()-5))) return true; 
+		}
+		return false;
+	}
+	
    /**
     * Get instance
     * @return

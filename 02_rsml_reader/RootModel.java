@@ -511,7 +511,7 @@ class RootModel extends WindowAdapter{
 				   	if(metaName.equals("software")) origin = nodeMeta.getFirstChild().getNodeValue(); 	
 					nodeMeta = nodeMeta.getNextSibling();
 			   }
-			   dpi = 2.54f;//getDPI(unit, res);
+			   dpi = res;//getDPI(unit, res);
 			   pixelSize = 2.54f / dpi;
 		   }
 		   
@@ -1198,7 +1198,9 @@ class RootModel extends WindowAdapter{
 				}
 			}
 			if(tag){
-				OvalRoi roi = new OvalRoi(w, h, 50, 50);
+				int w1 = Math.max(0, w-40);
+				int h1 = Math.max(0, h-40);
+				OvalRoi roi = new OvalRoi(w1, h1, 0.39*dpi, 0.39*dpi);
 				tracingP.fill(roi);
 			}
 			tracingP = tracing.getProcessor();

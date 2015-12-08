@@ -193,6 +193,8 @@ int P_sacrifice=0; /* Swith on/off pour le sacrifice*/
 int P_condemnedRoot=50; /* ID de la racine condamnée */
 int P_sacrificeTime=10; /* Temps auquel la racine est sacrifiée */
 
+int P_MaxSegs=10000; /* Number of segments allowed in the simulation */
+
 /* Variables globales diverses */
 
 long temps = 0;  /* Le temps, en jours */
@@ -204,8 +206,8 @@ float P_IC_meca = 0.02; /*Soil constrain */
 int P_shovel = 20; /* Depth of the shovel, for the shovelomics simulations*/ 
 float P_maxLatAge = 20; /*Maximum age for a lateral root*/
 
-int dpi = 30;
-float scale = (dpi ) / 2.54;
+int dpi = 300;  /* Output scale for the image */
+float scale = ((dpi) / 2.54) / 10; /* need to divide by then since all the metrics are in mm */
 
 unsigned char vox[NBCASEMAX+1][NBCASEMAX+1][NBCASEMAX+1];  /* tableau sol-voxel dont les cases vont contenir des entiers 1, 2 ou 3 */
 
@@ -1591,6 +1593,9 @@ char bid[MAXLINE];
   fscanf(FPar,"%f",&P_slopePrimAngle); // Slope for angle for the primary emission
   fgets(bid,MAXLINE-1,FPar);
 
+  fscanf(FPar,"%i",&P_MaxSegs); // Max number of segments
+  fgets(bid,MAXLINE-1,FPar);
+
   if (P_nbMaxPrim==1) {
     P_angInitMoyVertPrim=0.0; /* la racine émise est proche de la verticale */
     P_angInitETVertPrim=0.05;  /* écart-type de l'angle d'insertion  */
@@ -2464,6 +2469,30 @@ pTAxe axeCour;
     axeCour=axeCour->suivant;
   }
 }
+
+/****************************************************************************/
+
+int countSegments(pTSysRac sR)
+/*MODIFBEN : rend une racine (définie par le paramètre condemnedRoot) sénile et arrêtée à un temps défini par le paramètre P_sacrificeTime*/
+{
+  pTAxe axeCour;
+  int countSeg = 0;
+  axeCour=sR->premAxe;
+  while (axeCour!=NULL)
+  {
+      // Count the number of segments
+      pTSeg segCour;
+      segCour=axeCour->premSeg;
+      while (segCour!=NULL) {
+        if (segCour->complet) countSeg = countSeg+1;
+        segCour=segCour->suiv;
+      }
+      axeCour=axeCour->suivant;
+  }
+  return countSeg;
+}
+
+
 /****************************************************************************/
 
 
@@ -2527,8 +2556,13 @@ litVolumeMaxSR(sR);
 // Sleep(5001);
 int count=1;
 int inc = 0;
-while (temps < P_duree)
+int segs = 0;
+while (temps < P_duree && segs < P_MaxSegs)
 {
+
+  segs = countSegments(sR);
+  //printf("Segments : %3i \n",segs);
+
   temps=temps+deltaT;
   //printf("\nIteration %4li", count); /*MODIFBEN : monitoring*/
 
@@ -2555,7 +2589,7 @@ while (temps < P_duree)
 
 
   inc = inc + 1;
-  if((inc == 15 & temps > 5) || inc == P_duree) 
+  if((inc == 15 & temps >= 5) || inc == P_duree || segs > P_MaxSegs) 
     {
       ouvreFichiersOutput(); //MODIFBEN : ouverture du fichier d'output à chaque T pour incrémenter le nom de fichier. La fonction est modifiée en conséquence
       imprimeSRSegments(sR);

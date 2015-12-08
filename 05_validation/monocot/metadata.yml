@@ -1,0 +1,19 @@
+- name: monocot_data
+- specie: monocot
+- setup: 3D
+- type: model
+- provider: ArchiSimple
+- scale: 30
+- analysis: 
+   - GiaRoots
+   - MARIA
+- paper: 
+   - title: Calibration and evaluation of ArchiSimple, a simple model of root system architecture
+     authors: Pagès, L., Bécel, C., Boukcim, H., Moreau, D., Nguyen, C., & Voisin, A.-S
+     year: 2013
+     journal: Ecological Modelling 
+     volume: 290
+     pages: 76-84
+     
+      
+
